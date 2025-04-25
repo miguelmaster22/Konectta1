@@ -1,0 +1,19 @@
+1. Admin tablero de los numeros
+
+https://docs.google.com/spreadsheets/d/13h8H1yEYLYXvOg_-6g0QfSqNMkVtDyycoPly1X92jn4/edit
+
+2. funciones Leader :
+
+Ver el tablero de los numeros y asignar : membresías
+
+3. Funciones admin :
+
+A. Asign free Membership*
+B. Add pack no paid*
+C. Add puntos user (Derrecha o Izquierda) *
+F. Asign leader y retirarlo *
+I. Set time : 750 dias *
+J. Set percent : 200% *
+K. Set price membership : 10 USDT *
+
+M. Withdraw : False or True 
