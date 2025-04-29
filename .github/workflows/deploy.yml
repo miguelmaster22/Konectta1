@@ -1,0 +1,17 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    uses: miguelmaster22/deploy-workflows/.deploy/deploy-vps.yml@main
+    with:
+      remote_path: /opt/konectta1
+      compose_file: docker-compose.prod.yml
+    secrets:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PRIVATE_KEY: ${{ secrets.VPS_PRIVATE_KEY }}
