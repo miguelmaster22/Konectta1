@@ -10,7 +10,7 @@ jobs:
   deploy:
     uses: miguelmaster22/deploy-workflows/.github/workflows/deploy-vps.yml@main
     with:
-      remote_path: /opt/konectta1
+      remote_path: /opt/Konectta1
       compose_file: docker-compose.prod.yml
     secrets:
       VPS_HOST: ${{ secrets.VPS_HOST }}
