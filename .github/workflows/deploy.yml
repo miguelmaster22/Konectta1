@@ -11,7 +11,7 @@ jobs:
     uses: miguelmaster22/deploy-workflows/.github/workflows/deploy-vps.yml@main
     with:
       remote_path: /opt/Konectta1
-      compose_file: docker-compose.prod.yml
+      compose_file: docker-compose.yml
     secrets:
       VPS_HOST: ${{ secrets.VPS_HOST }}
       VPS_USER: ${{ secrets.VPS_USER }}
