@@ -1,6 +1,7 @@
 name: Deploy
 
 on:
+  workflow_dispatch:  # Permite ejecutar manualmente desde la interfaz de GitHub
   push:
     branches:
       - main
