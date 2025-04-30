@@ -1,5 +1,4 @@
 
-1 set time a 6% = 1000 dias
 
 fee de retiro :
 lev1: 0.8%
