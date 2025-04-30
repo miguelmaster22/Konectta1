@@ -3,9 +3,10 @@
   "version": "2.0.0",
   "description": "Es un sistema binario en la Blockchain",
   "scripts": {
-    "dev": "node --openssl-legacy-provider scripts/start ",
-    "start": "node --openssl-legacy-provider scripts/start ",
-    "build": "node --openssl-legacy-provider scripts/build  && npx rimraf docs && npx move-cli build docs"
+    "start": "nodemon server/index.js",
+    "start:client": "node --openssl-legacy-provider client/scripts/start --watch",
+    "dev": "npm-run-all --parallel start start:client",
+    "build": "node --openssl-legacy-provider client/scripts/build  && npx rimraf client/docs && npx move-cli client/build client/docs"
   },
   "author": "moreusdt",
   "license": "Apache 2.0",
@@ -32,7 +33,7 @@
     "crypto-js": "^4.1.1",
     "cryptr": "^6.2.0",
     "css-loader": "^3.4.2",
-    "dotenv": "8.2.0",
+    "dotenv": "^8.2.0",
     "dotenv-expand": "5.1.0",
     "eslint": "^6.6.0",
     "eslint-config-react-app": "^5.2.1",
@@ -53,6 +54,10 @@
     "jest-watch-typeahead": "0.4.2",
     "jquery": "^3.5.1",
     "mini-css-extract-plugin": "0.9.0",
+    "mongoose": "^8.14.1",
+    "node-cron": "^3.0.3",
+    "nodemon": "^3.1.10",
+    "npm-run-all": "^4.1.5",
     "optimize-css-assets-webpack-plugin": "5.0.3",
     "pnp-webpack-plugin": "1.6.0",
     "popper.js": "^1.16.1",

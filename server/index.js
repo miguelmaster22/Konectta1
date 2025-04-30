@@ -1,5 +1,7 @@
 const express = require("express");
+const app = express();
 let cors = require("cors");
+const path = require('path');
 const { Web3 } = require("web3");
 const Cryptr = require("cryptr");
 const bodyParser = require("body-parser");
@@ -8,11 +10,23 @@ const mongoose = require('mongoose');
 const cron = require('node-cron');
 require("dotenv").config();
 
+const env = process.env
+
+app.use(bodyParser.json());
+
+const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",") : ['*'];
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST'],
+  credentials: true,
+}))
+
+
 function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
-const uriMongoDB = process.env.APP_URIMONGODB
+const uriMongoDB = env.APP_URIMONGODB + env.APP_NAME + "?retryWrites=true&w=majority"
 const WalletVacia = "0x0000000000000000000000000000000000000000"
-const factorBlock = 1.5
+const factorBlock = 1.7
 const factorFail = 30
 const abiContrato = require("./BinarySystemV4.json");
 
@@ -69,52 +83,45 @@ const Binario = new Schema({
 
 const binario = mongoose.model('binarios-v2', Binario);
 
-const app = express();
-//app.use(cors())
-app.use(async (req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+const port = env.PORT_SERVER || "3001";
 
-  next();
+const addressContrato = env.REACT_APP_SMARTCONTRACT; //Nevo v4
 
-});
+const KEY_Secreto = env.REACT_APP_ENCR_STO || "AAAAAAAAAAAAAAAA"; // cifrado secreto para evitar fugas de informacion sencible
 
-
-app.use(bodyParser.json());
-
-const port = process.env.PORT || "3306";
-
-const addressContrato = "0x661b713da0e63F729f8895c0D8f7200287969042"; //Nevo v4
-
-const WALLET_API = "0x6b78C6d2031600dcFAd295359823889b2dbAfd1B";
-
-const RED = process.env.APP_RED || "https://bsc-dataseed.binance.org/";
-
-let redes = ["https://bsc-dataseed1.binance.org/", "https://bsc-dataseed2.binance.org/", "https://bsc-dataseed3.binance.org/", "https://bsc-dataseed4.binance.org/"]
-
-const account_1_priv = process.env.REACT_APP_PRIVATE_KY;
-
-const KEY = process.env.REACT_APP_ENCR_STO || "AAAAAAAAAAAAAAAA";
-const cryptr = new Cryptr(KEY);
-
-const TOKEN = process.env.REACT_APP_API_KEY || "1234567890";
+const TOKEN = env.REACT_APP_TOKEN_API || "1234567890"; // Id de conecion para identificar
 
 let base = "api";
 let version = "v2";
 
 const URL = `/${base}/${version}/`;
 
-let web3 = new Web3(RED); // demas funciones
-let web3_1 = new Web3(redes[0]); // contrato nuevo
-let web3_2 = new Web3(redes[1]); // contrato viejo
+const RED = env.APP_RED ?? "https://bsc-dataseed.binance.org/";
+
+let redes = ["https://bsc-dataseed1.binance.org/", "https://bsc-dataseed2.binance.org/", "https://bsc-dataseed3.binance.org/", "https://bsc-dataseed4.binance.org/"]
+
+let web3 = new Web3(RED); 
+let web3_1 = new Web3(redes[0]); 
+let web3_2 = new Web3(redes[1]); 
 let web3_3 = new Web3(redes[2]);
 
-web3.eth.accounts.wallet.add("0x" + account_1_priv);
-web3_1.eth.accounts.wallet.add("0x" + account_1_priv);
-web3_2.eth.accounts.wallet.add("0x" + account_1_priv);
-web3_3.eth.accounts.wallet.add("0x" + account_1_priv);
+let prinka = env.REACT_APP_PRIVATE_KY
 
+//prinka = web3.eth.accounts.create("orginal new interactions")
+//console.log(prinka)
+
+//prinka = encryptString("...", env.REACT_APP_PRIVATE_CR2)
+//console.log(prinka)
+
+const account_1_priv = decryptString(prinka, env.REACT_APP_PRIVATE_CR2)
+
+web3.eth.accounts.wallet.add(account_1_priv);
+web3_1.eth.accounts.wallet.add(account_1_priv);
+web3_2.eth.accounts.wallet.add(account_1_priv);
+web3_3.eth.accounts.wallet.add(account_1_priv);
+
+const WALLET_API = web3.eth.accounts.wallet[0].address;
+console.log("Wallet API: ", WALLET_API)
 
 let nonces = 0;
 let gasPrice = "1000000000";
@@ -137,19 +144,19 @@ nonce(0);
 
 web3_3.eth.getBalance(WALLET_API).then(async (r) => {
   r = new BigNumber(r).shiftedBy(-18)
-  console.log("balance: " + r.toString(10) + " BNB")
+  //console.log("balance: " + r.toString(10) + " BNB")
 
   if (r.toNumber() > 0.3) {
     let evio = r.minus(0.2)
     /*
-        let rawTransaction = {
-          "from": WALLET_API,
-          "nonce": await nonce(0),
-          "gasPrice": web3.utils.toHex(gasPrice * 1e9),
-          "gasLimit": web3.utils.toHex(gasLimit),
-          "to": toAddress,
-          "value": amountToSend
-        }
+      let rawTransaction = {
+        "from": WALLET_API,
+        "nonce": await nonce(0),
+        "gasPrice": web3.utils.toHex(gasPrice * 1e9),
+        "gasLimit": web3.utils.toHex(gasLimit),
+        "to": toAddress,
+        "value": amountToSend
+      }
     */
     console.log("Enviar a Binance: " + evio.toString(10) + " BNB")
 
@@ -174,8 +181,8 @@ async function nonce() {
   return nonces;
 }
 
-
-function encryptString(s) {
+function encryptString(s, KEY) {
+  const cryptr = new Cryptr(KEY);
   if (typeof s === "string") {
     return cryptr.encrypt(s);
   } else {
@@ -183,7 +190,8 @@ function encryptString(s) {
   }
 }
 
-function decryptString(s) {
+function decryptString(s, KEY) {
+  const cryptr = new Cryptr(KEY);
   if (typeof s === "string") {
     return cryptr.decrypt(s);
   } else {
@@ -200,7 +208,7 @@ async function iniciarAplicacion() {
       .then(async () => {
         console.log("conectado MongoDB");
 
-      
+
         console.log(">---- hecho! -------<")
 
       })
@@ -211,11 +219,9 @@ async function iniciarAplicacion() {
 
 }
 
-
 app.get(URL, (req, res) => {
   res.send({ online: true });
 });
-
 
 async function hacerTakeProfit(wallet) {
 
@@ -252,7 +258,6 @@ async function hacerTakeProfit(wallet) {
   } else {
     newUser.lReclamados = new BigNumber(user.lReclamados).plus(puntosReclamados).toString(10)
     newUser.rReclamados = new BigNumber(user.rReclamados).plus(puntosReclamados).toString(10)
-
 
     puntosUsados = new BigNumber(newUser.lReclamados)
 
@@ -370,13 +375,13 @@ app.post(URL + "retiro", async (req, res) => {
   };
 
   if (typeof req.body.data === "string") {
-    let data = JSON.parse(decryptString(req.body.data));
+    let data = JSON.parse(decryptString(req.body.data, KEY_Secreto));
 
     result.message = "reading data"
     if (
       data.token == TOKEN &&
-      data.fecha + 5 * 60 * 1000 >= Date.now() &&
-      data.origen === "web-kapp3"
+      data.fecha + 5 * 60 * 1000 >= Date.now() //&&
+      //data.origen === "web-huevo"
     ) {
       result.result = await hacerTakeProfit(data.wallet)
       result.message = "profit called"
@@ -385,7 +390,6 @@ app.post(URL + "retiro", async (req, res) => {
 
   res.send(result);
 });
-
 
 async function estimateRetiro(wallet) {
   wallet = wallet.toLowerCase();
@@ -436,7 +440,7 @@ app.post(URL + "calculate/retiro", async (req, res) => {
   };
 
   if (typeof req.body.data === "string") {
-    var data = JSON.parse(decryptString(req.body.data));
+    var data = JSON.parse(decryptString(req.body.data, KEY_Secreto));
 
 
     if (data.token == TOKEN) {
@@ -446,7 +450,6 @@ app.post(URL + "calculate/retiro", async (req, res) => {
 
   res.send(result);
 });
-
 
 app.get(URL + "binario/todo", async (req, res) => {
   let result = {
@@ -566,8 +569,6 @@ async function colectarPuntos(from, hand) {
   return result;
 
 }
-
-
 
 async function binariV2(wallet) {
   wallet = (wallet).toLocaleLowerCase()
@@ -978,32 +979,44 @@ app.post(URL + "puntos/add", async (req, res) => {
   };
 
   if (typeof req.body.data === "string") {
-    var data = JSON.parse(decryptString(req.body.data));
+    let data = JSON.parse(decryptString(req.body.data, KEY_Secreto));
 
-    if (data.token == TOKEN && data.puntos) {
+    console.log(data)
 
-      let user = await binario.findOne({ wallet: (data.wallet).toLocaleLowerCase() }, { _id: false })
+    if (data.token == TOKEN) {
 
-      let newUser = {}
+      if ("puntos" in data) {
 
-      if (data.hand === 0) {
-        newUser = {
-          lExtra: new BigNumber(user.lExtra).plus(data.puntos).toString(10)
+        let user = await binario.findOne({ wallet: (data.wallet).toLocaleLowerCase() }, { _id: false })
+
+        let newUser = {}
+
+        if (data.hand === 0) {
+          newUser = {
+            lExtra: new BigNumber(user.lExtra).plus(data.puntos).toString(10)
+          }
+
+        } else {
+          newUser = {
+            rExtra: new BigNumber(user.rExtra).plus(data.puntos).toString(10)
+          }
         }
 
+        await binario.updateOne({ wallet: (data.wallet).toLocaleLowerCase() }, newUser)
+        console.log("puntos asignados: " + (data.wallet).toLocaleLowerCase() + " hand: " + data.hand + " -> " + data.puntos)
+
+        await consultarUsuario((data.wallet).toLocaleLowerCase(), true, true, true)
+
+        result.result = true
       } else {
-        newUser = {
-          rExtra: new BigNumber(user.rExtra).plus(data.puntos).toString(10)
-        }
+        result.msg = "not correct value"
+
       }
-
-      await binario.updateOne({ wallet: (data.wallet).toLocaleLowerCase() }, newUser)
-      console.log("puntos asignados: " + (data.wallet).toLocaleLowerCase() + " hand: " + data.hand + " -> " + data.puntos)
-
-      await consultarUsuario((data.wallet).toLocaleLowerCase(), true, true, true)
-
-      result.result = true
+    } else {
+      result.msg = "not auth"
     }
+  } else {
+    result.msg = "data not found"
   }
 
   res.send(result);
@@ -1681,6 +1694,13 @@ app.get(URL + "total/retirar", async (req, res) => {
   res.send(result);
 });
 
+app.use(express.static(path.join(__dirname, '../client/docs')));
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../client/docs', 'index.html'));
+});
+
 app.listen(port, () => {
-  console.log(`Listening on: http://localhost:${port + URL} `);
+  console.log(`WEB - Listening on: http://localhost:${port} `);
+  console.log(`API - Listening on: http://localhost:${port + URL} `);
+
 });

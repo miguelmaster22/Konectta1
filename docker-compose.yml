@@ -1,25 +1,41 @@
 services:
-  n8n:
+  app:
     build: .
-    container_name: konectta-app
+    container_name: ${APP_NAME}-app
     restart: always
-    ports:
-      - "3000:3000"
+    #ports:
+    #  - "3000:3001"
     env_file:
       - .env
     environment:
       - NODE_ENV=production
     volumes:
-      - ./server/.env:/app/server/.env
+      - ./.env:/app/.env
     networks:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(`konectta.app`)"
-      - "traefik.http.routers.n8n.entrypoints=websecure"
-      - "traefik.http.routers.n8n.tls.certresolver=myresolver"
-      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+      - "traefik.http.routers.${APP_NAME}.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${APP_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${APP_NAME}.tls.certresolver=myresolver"
+      - "traefik.http.services.${APP_NAME}.loadbalancer.server.port=3001"
 
+      # router para redirigir www
+      - "traefik.http.routers.redirect.rule=Host(`www.${DOMAIN}`)"
+      - "traefik.http.routers.redirect.entrypoints=websecure"
+      - "traefik.http.routers.redirect.middlewares=redirect-www"
+      - "traefik.http.routers.redirect.tls.certresolver=myresolver"
+
+      # middleware de redirección
+      - "traefik.http.middlewares.redirect-www.redirectregex.regex=^https?://www\\.(.*)"
+      - "traefik.http.middlewares.redirect-www.redirectregex.replacement=https://$1"
+      - "traefik.http.middlewares.redirect-www.redirectregex.permanent=true"
+      
+      # Configuración del middleware (redirigir a HTTPS)
+      - "traefik.http.routers.${APP_NAME}.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      
 networks:
   web:
     external: true
