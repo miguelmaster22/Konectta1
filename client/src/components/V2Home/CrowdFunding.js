@@ -102,23 +102,24 @@ export default class CrowdFunding extends Component {
 
     inversors.inicio = 1000;
 
-    var tiempo = await this.props.contract.binaryProxy.methods
+    let tiempo = await this.props.contract.binaryProxy.methods
       .tiempo()
       .call({ from: this.props.currentAccount });
 
-    tiempo = tiempo * 1000;
+    tiempo = parseInt(tiempo) * 1000;
 
     var porcentiempo = ((Date.now() - inversors.inicio) * 100) / tiempo;
 
     var decimales = await this.props.contract.contractToken.methods
       .decimals()
       .call({ from: this.props.currentAccount });
+    decimales = parseInt(decimales);
 
     var balance = await this.props.contract.contractToken.methods
       .balanceOf(this.props.currentAccount)
       .call({ from: this.props.currentAccount });
 
-    balance = new BigNumber(balance).shiftedBy(-decimales).toString(10);
+    balance = new BigNumber(parseInt(balance)).shiftedBy(-decimales).toString(10);
 
     var valorPlan = 0;
 
@@ -207,21 +208,22 @@ export default class CrowdFunding extends Component {
 
 
 
-    var dias = await this.props.contract.binaryProxy.methods
+    let dias = await this.props.contract.binaryProxy.methods
       .tiempo()
       .call({ from: this.props.currentAccount });
 
-    //dias = (parseInt(dias)/86400);
+    dias = parseInt(dias);
 
-    var porcentaje = await this.props.contract.binaryProxy.methods
+    let porcentaje = await this.props.contract.binaryProxy.methods
       .porcent()
       .call({ from: this.props.currentAccount });
 
     porcentaje = parseInt(porcentaje);
 
-    var decimals = await this.props.contract.contractToken.methods
+    let decimals = await this.props.contract.contractToken.methods
       .decimals()
       .call({ from: this.props.currentAccount });
+    decimals = parseInt(decimals);
 
     let balanceUSDT = await this.props.contract.contractToken.methods
       .balanceOf(this.props.currentAccount)
@@ -320,10 +322,10 @@ export default class CrowdFunding extends Component {
         .call({ from: this.props.currentAccount });
     }
 
-    var amount = await this.props.contract.binaryProxy.methods
+    let amount = await this.props.contract.binaryProxy.methods
       .plan()
       .call({ from: this.props.currentAccount });
-    amount = new BigNumber(amount).shiftedBy(-18).toNumber();
+    amount = new BigNumber(parseInt(amount)).shiftedBy(-18).toNumber();
     amount = amount * valueUSDT;
     amount = amount - balance;
 

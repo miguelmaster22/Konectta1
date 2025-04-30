@@ -72,9 +72,11 @@ export default class Datos extends Component {
       .totalRefWitdrawl()
       .call({ from: this.state.currentAccount });
 
-    var decimales = await this.props.contract.contractToken.methods
+    let decimales = await this.props.contract.contractToken.methods
       .decimals()
       .call({ from: this.state.currentAccount });
+
+    decimales = parseInt(decimales);
 
     var days = await this.props.contract.binaryProxy.methods
       .dias()
@@ -110,16 +112,16 @@ export default class Datos extends Component {
 
     //console.log(esto);
     this.setState({
-      totalInvestors: esto.Investors,
-      totalInvested: esto.Invested / 10 ** decimales,
-      totalRefRewards: esto.RefRewards / 10 ** decimales,
-      retirado: retirado / 10 ** decimales,
-      days: days,
-      porcentaje: porcentaje,
-      precioRegistro: precioRegistro / 10 ** decimales,
-      timerOut: timerOut,
-      MIN_RETIRO: MIN_RETIRO / 10 ** decimales,
-      MAX_RETIRO: MAX_RETIRO / 10 ** decimales,
+      totalInvestors: parseInt(esto.Investors),
+      totalInvested: parseInt(esto.Invested) / 10 ** decimales,
+      totalRefRewards: parseInt(esto.RefRewards) / 10 ** decimales,
+      retirado: parseInt(retirado) / 10 ** decimales,
+      days: parseInt(days),
+      porcentaje: parseInt(porcentaje),
+      precioRegistro: parseInt(precioRegistro) / 10 ** decimales,
+      timerOut: parseInt(timerOut),
+      MIN_RETIRO: parseInt(MIN_RETIRO) / 10 ** decimales,
+      MAX_RETIRO: parseInt(MAX_RETIRO) / 10 ** decimales,
       retirar: retirar
     });
   }

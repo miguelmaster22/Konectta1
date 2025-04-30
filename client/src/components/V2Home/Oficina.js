@@ -140,9 +140,10 @@ export default class Oficina extends Component {
   async Investors() {
     var MIN_RETIRO = await this.props.contract.binaryProxy.methods.MIN_RETIRO().call({ from: this.state.currentAccount });
 
-    MIN_RETIRO = new BigNumber(MIN_RETIRO).shiftedBy(-18).toNumber();
+    MIN_RETIRO = new BigNumber(parseInt(MIN_RETIRO)).shiftedBy(-18).toNumber();
 
-    let porcentajeMensual = new BigNumber(await this.props.contract.binaryProxy.methods.porcent().call({ from: this.state.currentAccount })).dividedBy(await this.props.contract.binaryProxy.methods.dias().call({ from: this.state.currentAccount })).times(30).dp(2).toString(10)
+    let porcentajeMensual = await this.props.contract.binaryProxy.methods.porcent().call({ from: this.state.currentAccount }) 
+    porcentajeMensual = new BigNumber(parseInt(porcentajeMensual)).dividedBy(await this.props.contract.binaryProxy.methods.dias().call({ from: this.state.currentAccount })).times(30).dp(2).toString(10)
 
     this.setState({
       MIN_RETIRO: MIN_RETIRO,
@@ -153,7 +154,7 @@ export default class Oficina extends Component {
       let investor = this.props.investor;
 
       var porcent = await this.props.contract.binaryProxy.methods.porcent().call({ from: this.props.currentAccount });
-      porcent = porcent / 100;
+      porcent = parseInt(porcent) / 100;
 
       var valorPlan = this.state.upto;
       var valorPlan2 = valorPlan;
@@ -178,7 +179,8 @@ export default class Oficina extends Component {
         progresoRetiro = "100";
       }
 
-      let MAX_RETIRO = new BigNumber(await this.props.contract.binaryProxy.methods.MAX_RETIRO().call({ from: this.props.currentAccount })).shiftedBy(-18)
+      let MAX_RETIRO = await this.props.contract.binaryProxy.methods.MAX_RETIRO().call({ from: this.props.currentAccount })
+      MAX_RETIRO = new BigNumber(parseInt(MAX_RETIRO)).shiftedBy(-18)
 
       let retirableA = investor.retirable
 
@@ -317,13 +319,13 @@ export default class Oficina extends Component {
     //console.log(nivelUSDT);
 
     var porcientos = await this.props.contract.binaryProxy.methods.porcientos(0).call({ from: this.state.currentAccount });
-    porcientos = porcientos / 1000;
+    porcientos = parseInt(porcientos) / 1000;
 
     let porcentPuntosBinario = 50 / 100;
 
     var porcientosSalida = [];
     for (let index = 0; index < 5; index++) {
-      porcientosSalida[index] = (await this.props.contract.binaryProxy.methods.porcientosSalida(index).call({ from: this.state.currentAccount })) / 1000;
+      porcientosSalida[index] = parseInt(await this.props.contract.binaryProxy.methods.porcientosSalida(index).call({ from: this.state.currentAccount })) / 1000;
     }
 
     //console.log(porcientosSalida)
@@ -461,7 +463,7 @@ export default class Oficina extends Component {
         .puntosUsados(this.state.currentAccount)
         .call({ from: this.state.currentAccount })
 
-      pRanked = new BigNumber(pRanked).shiftedBy(-18).dp(2)
+      pRanked = new BigNumber(parseInt(pRanked)).shiftedBy(-18).dp(2)
 
       let misPuntosRango = this.props.investor.binario[0].usados
 
@@ -544,7 +546,7 @@ export default class Oficina extends Component {
             //pRanked = new BigNumber(totalRango[index].puntos)
 
             rangoEstilo = "btn-success btn-lg";
-            cantidad = new BigNumber(await this.props.contract.binaryProxy.methods.gananciasRango(index).call({ from: this.state.currentAccount }))
+            cantidad = new BigNumber(parseInt(await this.props.contract.binaryProxy.methods.gananciasRango(index).call({ from: this.state.currentAccount })))
 
             gananciasRango = `Claim ${cantidad.shiftedBy(-18).dp(2).toString(10)} USDT`;
             funcionRango = () => {

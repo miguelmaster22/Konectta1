@@ -2,19 +2,29 @@ const express = require("express");
 const app = express();
 let cors = require("cors");
 const path = require('path');
+const fs = require('fs');
+const dotenv = require('dotenv');
 const { Web3 } = require("web3");
 const Cryptr = require("cryptr");
 const bodyParser = require("body-parser");
 const BigNumber = require("bignumber.js");
 const mongoose = require('mongoose');
 const cron = require('node-cron');
-require("dotenv").config();
+
+dotenv.config();
+
+if (fs.existsSync('.env.local')) {
+  const localEnv = dotenv.parse(fs.readFileSync('.env.local'));
+  for (const key in localEnv) {
+    process.env[key] = localEnv[key];
+  }
+}
 
 const env = process.env
 
 app.use(bodyParser.json());
 
-const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",") : ['*'];
+const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",") : [];
 app.use(cors({
   origin: allowedOrigins,
   methods: ['GET', 'POST'],

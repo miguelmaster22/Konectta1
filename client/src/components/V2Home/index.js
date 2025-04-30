@@ -48,6 +48,9 @@ export default class Home extends Component {
     investor.decimals = await this.props.contract.contractToken.methods
       .decimals()
       .call({ from: investor.wallet })
+      .then((r) => {
+        return parseInt(r)
+      })
 
 
     try {
@@ -65,8 +68,8 @@ export default class Home extends Component {
           return r
         })
 
-      consulta.invested = new BigNumber(consulta.invested).shiftedBy(-investor.decimals)
-      consulta.withdrawn = new BigNumber(consulta.withdrawn).shiftedBy(-investor.decimals)
+      consulta.invested = new BigNumber(parseInt(consulta.invested)).shiftedBy(-investor.decimals)
+      consulta.withdrawn = new BigNumber(parseInt(consulta.withdrawn)).shiftedBy(-investor.decimals)
       consulta.paidAt = parseInt(consulta.paidAt)
 
       investor = { ...investor, ...consulta }
@@ -99,7 +102,7 @@ export default class Home extends Component {
       .withdrawablePassive(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
-        r = new BigNumber(r).shiftedBy(-investor.decimals)
+        r = new BigNumber(parseInt(r)).shiftedBy(-investor.decimals)
         return r
       })
 
@@ -108,7 +111,7 @@ export default class Home extends Component {
       .ventaDirecta(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
-        r = new BigNumber(r).shiftedBy(-investor.decimals)
+        r = new BigNumber(parseInt(r)).shiftedBy(-investor.decimals)
         return r
       })
 
@@ -116,7 +119,7 @@ export default class Home extends Component {
       .binario(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
-        r = new BigNumber(r).shiftedBy(-investor.decimals)
+        r = new BigNumber(parseInt(r)).shiftedBy(-investor.decimals)
         return r
       })
 
@@ -124,7 +127,7 @@ export default class Home extends Component {
       .matchingBonus(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
-        r = new BigNumber(r).shiftedBy(-investor.decimals)
+        r = new BigNumber(parseInt(r)).shiftedBy(-investor.decimals)
         return r
       })
 
@@ -133,7 +136,7 @@ export default class Home extends Component {
       .retirableA(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
-        r = new BigNumber(r).shiftedBy(-investor.decimals)
+        r = new BigNumber(parseInt(r)).shiftedBy(-investor.decimals)
         return r
       })
 
@@ -141,7 +144,7 @@ export default class Home extends Component {
       .addressToId(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
-        return r
+        return parseInt(r)
       })
 
     try {
@@ -196,7 +199,7 @@ export default class Home extends Component {
       console.log(error.toString())
     }
 
-    investor.porcentaje = (await this.props.contract.binaryProxy.methods
+    investor.porcentaje = parseInt(await this.props.contract.binaryProxy.methods
       .porcent()
       .call({ from: investor.wallet })) / 100;
 
@@ -370,15 +373,15 @@ export default class Home extends Component {
 
 
 
-    let timerOut = await this.props.contract.binaryProxy.methods.timerOut().call({ from: investor.wallet }) * 1000
+    let timerOut = parseInt(await this.props.contract.binaryProxy.methods.timerOut().call({ from: investor.wallet })) * 1000
 
-    investor.lastPay = await this.props.contract.binaryProxy.methods.lastPay(this.props.currentAccount).call({ from: investor.wallet }) * 1000
+    investor.lastPay = parseInt(await this.props.contract.binaryProxy.methods.lastPay(this.props.currentAccount).call({ from: investor.wallet })) * 1000
 
 
     investor.nextPay = investor.lastPay + timerOut
 
 
-    investor.balanceUSDTContract = new BigNumber(await this.props.contract.contractToken.methods.balanceOf(this.props.contract.binaryProxy._address).call({ from: investor.wallet })).shiftedBy(-18).toNumber()
+    investor.balanceUSDTContract = new BigNumber(parseInt(await this.props.contract.contractToken.methods.balanceOf(this.props.contract.binaryProxy._address).call({ from: investor.wallet }))).shiftedBy(-18).toNumber()
 
 
     //console.log(investor)

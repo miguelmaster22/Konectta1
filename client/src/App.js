@@ -35,7 +35,7 @@ class App extends Component {
 
   async componentDidMount() {
 
-    document.getElementById("conect").addEventListener("click", () => this.conectar())
+    //document.getElementById("conect").addEventListener("click", () => this.conectar())
 
     inicio = setTimeout(() => {
       this.conectar();
