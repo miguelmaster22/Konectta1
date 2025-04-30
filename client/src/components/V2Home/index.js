@@ -1,12 +1,10 @@
 import React, { Component } from "react";
 
-
 import CrowdFunding from "./CrowdFunding";
 import Oficina from "./Oficina";
 import Datos from "./Datos";
 import Depositos from "./Depositos";
 import cons from "../../cons";
-
 
 const BigNumber = require("bignumber.js");
 
@@ -40,7 +38,6 @@ export default class Home extends Component {
   componentWillUnmount() {
     clearInterval(intervalo2)
   }
-
 
   async Investor() {
 
@@ -92,10 +89,8 @@ export default class Home extends Component {
       
     } catch (error) {
         console.log(error)
-      
-        
     }
-        */
+    */
 
 
     // pasivo de los paquetes comprados
