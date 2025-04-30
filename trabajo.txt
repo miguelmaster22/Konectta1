@@ -1,1 +1,10 @@
-lo estamos trabajando
+
+1 set time a 6% = 1000 dias
+
+fee de retiro :
+lev1: 0.8%
+lev2: 0.8%
+lev3: 0.8%
+lev4: 0.8%
+lev5: 0.8%
+
