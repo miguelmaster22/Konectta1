@@ -20,7 +20,6 @@ export default class Depositos extends Component {
     }, 3 * 1000);
   }
 
-
   async Investors() {
     if (this.props.investor.registered) {
       this.setState({
@@ -31,7 +30,6 @@ export default class Depositos extends Component {
     }
 
   }
-
 
   render() {
 
