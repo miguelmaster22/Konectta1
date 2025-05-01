@@ -142,6 +142,8 @@ contract Storage1 {
     address[] public wallet;
     uint256[] public valor;
     bool public iniciado = true;
+    //adicional 14/04/2025
+    uint256 public precision;
 }
 
 contract Inicial is Storage1 {
@@ -173,7 +175,8 @@ contract Inicial is Storage1 {
         MIN_RETIRO = 5 * 10 ** 18;
         MAX_RETIRO = 3000 * 10 ** 18;
         plan = 25 * 10 ** 18;
-        porcientos = [100];
+        precision = 1000; //  1 = 0.1% = 0.001 de precision en array de transferencias
+        porcientos = [80];
         porcientosSalida = [20, 5, 5, 5, 5];
         gananciasRango = [
             10 * 10 ** 18,
@@ -206,29 +209,29 @@ contract Inicial is Storage1 {
             1250000 * 10 ** 18
         ];
         onOffWitdrawl = true;
-        dias = 857;
+        dias = 858;
         timerOut = 86400;
         porcent = 200;
         lastUserId = 1;
-        precioRegistro = 15 * 10 ** 18;
+        precioRegistro = 10 * 10 ** 18;
         walletRegistro = [
-            0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37,
-            0xF64AC393F1D3a802740b6844Cc09E2b7044F7108
+            0xDF835Cb0935FdBC51BBf730599B57b21815441Dd,
+            0x4Afa94Acd6f7D0fdb19622F5B75C93BDEbeF53B2
         ];
-        porcientoRegistro = [40, 60];
+        porcientoRegistro = [500, 500]; // debe sumar 1000 para enviar el 100%
         wallet = [
             0x0c4c6519E8B6e4D9c99b09a3Cda475638c930b00,
-            0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37,
-            0xD50D0d4001EeAc74f268b022b2e134655ec1dE99,
-            0xe7b878d9587aa6604c6F9683aAf505B03fd7562B
+            0xDF835Cb0935FdBC51BBf730599B57b21815441Dd,
+            0x4Afa94Acd6f7D0fdb19622F5B75C93BDEbeF53B2,
+            0xFf72Bb8af10164670fBb3dd6282F72530728E3B6
         ];
-        valor = [1, 5, 6, 65];
+        valor = [10, 40, 50, 650]; // 5% (50) se queda en el contrato
         walletFee = [
-            0x7dcc06C668e6F0360aacaa1B1244a30375Cc9995,
-            0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37,
+            0x4Afa94Acd6f7D0fdb19622F5B75C93BDEbeF53B2,
+            0xDF835Cb0935FdBC51BBf730599B57b21815441Dd,
             address(this)
         ];
-        valorFee = [2, 2, 4];
+        valorFee = [20, 20, 40]; // = 6% de feee de salida : address(this) se queda en el contrato
     }
 }
 
@@ -245,7 +248,11 @@ contract BinarySystemV4 is Inicial {
         uint256 indexed percent,
         uint256 timestamp
     );
-    event UpdateParams(uint256 indexed dias, uint256 indexed percent,uint256 timestamp);
+    event UpdateParams(
+        uint256 indexed dias,
+        uint256 indexed percent,
+        uint256 timestamp
+    );
 
     constructor() {}
     function setstate()
@@ -256,7 +263,7 @@ contract BinarySystemV4 is Inicial {
         return (lastUserId, totalInvested, totalRefRewards);
     }
     function tiempo() public view returns (uint256) {
-        return dias.mul(86400);
+        return dias * 86400;
     }
     function column(
         address yo,
@@ -310,10 +317,26 @@ contract BinarySystemV4 is Inicial {
     ) public view returns (address[] memory) {
         return _hand == 0 ? hijosLeft[_user] : hijosRight[_user];
     }
+
     function verDepositos(
         address _user
     )
         public
+        view
+        returns (
+            bool[] memory activo,
+            uint256 total,
+            uint256 topay,
+            uint256 retirado
+        )
+    {
+        return _verDepositos(_user);
+    }
+
+    function _verDepositos(
+        address _user
+    )
+        private
         view
         returns (
             bool[] memory activo,
@@ -356,7 +379,7 @@ contract BinarySystemV4 is Inicial {
         uint256 amount,
         uint256[] memory array,
         bool _salida
-    ) internal {
+    ) private {
         address[] memory referi;
         referi = column(yo, array.length);
         uint256 a;
@@ -365,10 +388,10 @@ contract BinarySystemV4 is Inicial {
         for (uint256 i = 0; i < array.length; i++) {
             if (array[i] != 0) {
                 usuario = investors[referi[i]];
-                (, , amountUser, ) = verDepositos(referi[i]);
+                (, , amountUser, ) = _verDepositos(referi[i]);
                 if (usuario.registered && amountUser > 0) {
                     if (referi[i] != address(0)) {
-                        a = amount.mul(array[i]).div(1000);
+                        a = amount.mul(array[i]).div(precision);
                         if (amountUser > a) {
                             discountDeposits(referi[i], a);
                             if (_salida) {
@@ -378,13 +401,13 @@ contract BinarySystemV4 is Inicial {
                             }
                             totalRefRewards += a;
                         } else {
+                            discountDeposits(referi[i], amountUser);
                             if (_salida) {
                                 matchingBonus[referi[i]] += amountUser;
                             } else {
                                 ventaDirecta[referi[i]] += amountUser;
                             }
                             totalRefRewards += amountUser;
-                            discountDeposits(referi[i], amountUser);
                         }
                     } else {
                         break;
@@ -395,24 +418,24 @@ contract BinarySystemV4 is Inicial {
             }
         }
     }
-    function discountDeposits(address _user, uint256 _valor) internal {
-        Deposito storage dep;
 
+    function discountDeposits(address _user, uint256 _valor) internal {
         for (uint i = 0; i < depositos[_user].length; i++) {
-            if (_valor > 0) {
-                dep = depositos[_user][i];
-                if (
-                    _valor >
-                    dep.valor.mul(dep.factor).div(100).sub(dep.retirado)
-                ) {
-                    _valor = _valor.sub(
-                        dep.valor.mul(dep.factor).div(100).sub(dep.retirado)
-                    );
-                    dep.retirado = dep.valor.mul(dep.factor).div(100);
-                } else {
-                    dep.retirado = dep.retirado.add(_valor);
-                    delete _valor;
-                }
+            if (_valor == 0) {
+                break;
+            }
+
+            Deposito storage dep = depositos[_user][i];
+            uint256 totalDisponible = dep.valor.mul(dep.factor).div(100);
+            uint256 restante = totalDisponible.sub(dep.retirado);
+
+            if (_valor >= restante) {
+                dep.retirado = totalDisponible;
+                _valor = _valor.sub(restante);
+            } else {
+                dep.retirado = dep.retirado.add(_valor);
+                _valor = 0;
+                break;
             }
         }
     }
@@ -431,7 +454,7 @@ contract BinarySystemV4 is Inicial {
                 if (walletRegistro[i] != address(this)) {
                     TRC20_Interface(TOKEN).transfer(
                         walletRegistro[i],
-                        precioRegistro.mul(porcientoRegistro[i]).div(100)
+                        precioRegistro.mul(porcientoRegistro[i]).div(precision)
                     );
                 }
             }
@@ -462,7 +485,7 @@ contract BinarySystemV4 is Inicial {
             if (wallet[i] != address(this)) {
                 TRC20_Interface(TOKEN).transfer(
                     wallet[i],
-                    _value.mul(valor[i]).div(100)
+                    _value.mul(valor[i]).div(precision)
                 );
             }
         }
@@ -493,7 +516,7 @@ contract BinarySystemV4 is Inicial {
 
     function newRecompensa() public {
         require(onOffWitdrawl, "contract is paused");
-        uint256 amount = withdrawableRange(msg.sender);
+        uint256 amount = puntosUsados[msg.sender];
         for (uint256 index = 0; index < gananciasRango.length; index++) {
             if (
                 amount >= puntosRango[index] &&
@@ -505,6 +528,7 @@ contract BinarySystemV4 is Inicial {
                         gananciasRango[index]
                     )
                 ) {
+                    totalRefWitdrawl += gananciasRango[index];
                     rangoReclamado[msg.sender][index] = true;
                 }
             }
@@ -514,14 +538,15 @@ contract BinarySystemV4 is Inicial {
     function withdrawablePassive(
         address any_user
     ) public view returns (uint256 amount) {
-        (, amount, , ) = verDepositos(any_user);
+        (, amount, , ) = _verDepositos(any_user);
     }
 
     function withdrawable(address _user) public view returns (uint256 amount) {
-        amount = ventaDirecta[_user]
-            .add(binario[_user])
-            .add(matchingBonus[_user])
-            .add(withdrawablePassive(_user));
+        (, amount, , ) = _verDepositos(_user);
+
+        amount = amount.add(ventaDirecta[_user]).add(binario[_user]).add(
+            matchingBonus[_user]
+        );
     }
     function corteBinarioDo(
         address any_user,
@@ -582,12 +607,12 @@ contract BinarySystemV4 is Inicial {
             TRC20_Interface(TOKEN).balanceOf(address(this)) >= _value,
             "ICB-001"
         );
-        uint256 descuento = 100;
+        uint256 descuento = precision;
         for (uint256 i = 0; i < walletFee.length; i++) {
             if (walletFee[i] != address(this)) {
                 TRC20_Interface(TOKEN).transfer(
                     walletFee[i],
-                    _value.mul(valorFee[i]).div(100)
+                    _value.mul(valorFee[i]).div(precision)
                 );
             }
             descuento = descuento.sub(valorFee[i]);
@@ -595,7 +620,7 @@ contract BinarySystemV4 is Inicial {
 
         TRC20_Interface(TOKEN).transfer(
             msg.sender,
-            _value.mul(descuento).div(100)
+            _value.mul(descuento).div(precision)
         );
         rewardReferers(msg.sender, _value, porcientosSalida, true);
 
@@ -606,17 +631,23 @@ contract BinarySystemV4 is Inicial {
     function owner() public pure returns (address) {
         return address(0);
     }
-    function onlyOwner() internal view {
-        require(leveling[msg.sender] <= 1 && leveling[msg.sender] != 0);
+    modifier onlyOwner() {
+        if (msg.sender != API) {
+            require(leveling[msg.sender] <= 1 && leveling[msg.sender] != 0);
+        }
+        _;
     }
-    function onlySubOwner() internal view {
+    modifier onlySubOwner() {
         require(leveling[msg.sender] <= 2 && leveling[msg.sender] != 0);
+        _;
     }
-    function onlyLeader() internal view {
+    modifier onlyLeader() {
         require(leveling[msg.sender] <= 3 && leveling[msg.sender] != 0);
+        _;
     }
-    function onlyAdmin() internal view {
+    modifier onlyAdmin() {
         require(leveling[msg.sender] <= 4 && leveling[msg.sender] != 0);
+        _;
     }
     function makeNewLevel(address payable _newadmin, uint256 _level) public {
         require(
@@ -636,19 +667,17 @@ contract BinarySystemV4 is Inicial {
         delete leveling[_oldadmin];
     }
 
-    function onlyApi() internal view {
+    function onlyApi() private view {
         require(API == msg.sender);
     }
-    function makeNewApi(address payable _newapi) public {
-        onlyOwner();
+    function makeNewApi(address payable _newapi) public onlyOwner {
         API = _newapi;
     }
     function asignFreeMembership(
         address _user,
         address _sponsor,
         uint8 _hand
-    ) public {
-        onlyAdmin();
+    ) public onlyAdmin {
         require(!investors[_user].registered);
         rangoReclamado[_user] = espaciosRango;
         idToAddress[lastUserId] = _user;
@@ -661,90 +690,105 @@ contract BinarySystemV4 is Inicial {
         uint256 _plan,
         uint256 _porcent,
         bool _depago
-    ) public {
-        onlyAdmin();
+    ) public onlyAdmin {
         _plan = plan * _plan;
         _buyPlan(_user, _plan, _porcent, _depago);
     }
+
+    function patchUser(
+        address _user
+    ) external onlyOwner returns (uint256 compensacion) {
+        for (uint i = 0; i < depositos[_user].length; i++) {
+            Deposito storage dep = depositos[_user][i];
+            uint256 total = dep.valor.mul(dep.factor).div(100);
+            uint256 pendiente = total.sub(dep.retirado);
+
+            if (pendiente > 0) {
+                dep.retirado = total; // Marcamos como pagado
+                compensacion = compensacion.add(pendiente);
+            }
+        }
+
+        if (compensacion > 0) {
+            TRC20_Interface(TOKEN).transfer(_user, compensacion);
+            investors[_user].withdrawn = investors[_user].withdrawn.add(
+                compensacion
+            );
+        }
+    }
     function setPrecioRegistro(
         uint256 _precio,
-        uint256[] memory _porcentaje
-    ) public {
-        onlySubOwner();
-        precioRegistro = _precio;
-        porcientoRegistro = _porcentaje;
-    }
-    function controlWitdrawl(bool _true_false) public {
-        onlySubOwner();
-        onOffWitdrawl = _true_false;
-    }
-    function setPorcientos(uint256 _nivel, uint256 _value) public {
-        onlySubOwner();
-        porcientos[_nivel] = _value;
-    }
-    function setPorcientosSalida(uint256 _nivel, uint256 _value) public {
-        onlySubOwner();
-        porcientosSalida[_nivel] = _value;
-    }
-    function setWalletstransfers(
         address[] memory _wallets,
-        uint256[] memory _valores
-    ) public {
-        onlySubOwner();
+        uint256[] memory _porcentajes
+    ) public onlySubOwner {
+        precioRegistro = _precio;
+        walletRegistro = _wallets;
+        porcientoRegistro = _porcentajes;
+    }
+    function controlWitdrawl() public onlySubOwner {
+        onOffWitdrawl = !onOffWitdrawl;
+    }
+    function setPrecision(uint256 _precision) public onlyOwner {
+        precision = _precision;
+    }
+    function setPorcientos(
+        uint256 _nivel,
+        uint256 _value,
+        bool _out
+    ) public onlySubOwner {
+        if (_out) {
+            porcientosSalida[_nivel] = _value;
+        } else {
+            porcientos[_nivel] = _value;
+        }
+    }
+    function setWalletsTransfer(
+        address[] memory _wallets,
+        uint256[] memory _porcentajes
+    ) public onlySubOwner {
         wallet = _wallets;
-        valor = _valores;
+        valor = _porcentajes;
     }
-    function setWalletFee(
+    function setWalletsFee(
         address[] calldata _wallet,
-        uint256[] calldata _fee
-    ) public {
-        onlySubOwner();
+        uint256[] calldata _porcentajes
+    ) public onlySubOwner {
         walletFee = _wallet;
-        valorFee = _fee;
+        valorFee = _porcentajes;
     }
-    function setMIN_RETIRO(uint256 _min) public {
-        onlySubOwner();
+    function setMIN_RETIRO(uint256 _min) public onlySubOwner {
         MIN_RETIRO = _min;
     }
-    function setMAX_RETIRO(uint256 _max) public {
-        onlySubOwner();
+    function setMAX_RETIRO(uint256 _max) public onlySubOwner {
         MAX_RETIRO = _max;
     }
-    function setPlan(uint256 _value) public {
-        onlySubOwner();
+    function setPlan(uint256 _value) public onlySubOwner {
         plan = _value;
     }
-    function setDias(uint256 _dias) public {
-        onlySubOwner();
+    function setDias(uint256 _dias) public onlySubOwner {
         dias = _dias;
         emit UpdateParams(dias, porcent, block.timestamp);
     }
-    function setTimerOut(uint256 _segundos) public {
-        onlySubOwner();
+    function setTimerOut(uint256 _segundos) public onlySubOwner {
         timerOut = _segundos;
     }
-    function setRetorno(uint256 _porcent) public {
-        onlySubOwner();
+    function setRetorno(uint256 _porcent) public onlySubOwner {
         porcent = _porcent;
         emit UpdateParams(dias, porcent, block.timestamp);
     }
-    function updateTotalInvestors(uint256 _index) public {
-        onlySubOwner();
+    function updateTotalInvestors(uint256 _index) public onlySubOwner {
         lastUserId = _index;
     }
-    function setToken(address _token) public {
-        onlySubOwner();
+    function setToken(address _token) public onlySubOwner {
         TOKEN = _token;
     }
-    function redimToken(address _token) public {
-        onlyOwner();
+    function redimToken(address _token) public onlyOwner {
         TRC20_Interface(_token).transfer(
             msg.sender,
             TRC20_Interface(_token).balanceOf(address(this))
         );
     }
-    function redimBNB() public {
-        onlyOwner();
+    function redimBNB() public onlyOwner {
         payable(msg.sender).transfer(address(this).balance);
     }
     fallback() external payable {}

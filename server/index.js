@@ -51,9 +51,7 @@ cron.schedule('0 0 */1 * * *', async () => {
 
   appReady = false;
 
-  await consultarBinario();
   await escalarRedV2(["0x04302e4e19552635EADd013eFe54E10f30BA1Bf2"])
-  await consultarBinario();
 
   console.log('end task every Hour ');
 
@@ -168,7 +166,7 @@ web3_3.eth.getBalance(WALLET_API).then(async (r) => {
         "value": amountToSend
       }
     */
-    console.log("Enviar a Binance: " + evio.toString(10) + " BNB")
+    //console.log("Enviar a Binance: " + evio.toString(10) + " BNB")
 
   }
 
@@ -209,7 +207,7 @@ function decryptString(s, KEY) {
   }
 }
 
-iniciarAplicacion()
+iniciarAplicacion();
 
 async function iniciarAplicacion() {
 
@@ -218,6 +216,7 @@ async function iniciarAplicacion() {
       .then(async () => {
         console.log("conectado MongoDB");
 
+        await escalarRedV2(["0x04302e4e19552635EADd013eFe54E10f30BA1Bf2"])
 
         console.log(">---- hecho! -------<")
 
@@ -276,39 +275,6 @@ async function hacerTakeProfit(wallet) {
   retBinario = retBin
 
   let pRango = new BigNumber(0)
-  let invest = new BigNumber(user.invested).toNumber() // 125 USDT
-
-  let puntosRango = [
-    125 * 10 ** 18,
-    250 * 10 ** 18,
-    500 * 10 ** 18,
-    1250 * 10 ** 18,
-    2500 * 10 ** 18,
-    5000 * 10 ** 18,
-    12500 * 10 ** 18,
-    25000 * 10 ** 18,
-    50000 * 10 ** 18,
-    125000 * 10 ** 18,
-    250000 * 10 ** 18,
-    500000 * 10 ** 18,
-    1250000 * 10 ** 18
-  ]
-
-  let usdtRango = [
-    10 * 10 ** 18,
-    20 * 10 ** 18,
-    40 * 10 ** 18,
-    100 * 10 ** 18,
-    200 * 10 ** 18,
-    400 * 10 ** 18,
-    1000 * 10 ** 18,
-    2000 * 10 ** 18,
-    4000 * 10 ** 18,
-    5000 * 10 ** 18,
-    10000 * 10 ** 18,
-    20000 * 10 ** 18,
-    50000 * 10 ** 18
-  ]
 
   let rangoArray = []
 
@@ -481,105 +447,6 @@ function retirableBinario(puntosA, puntosB) {
 
 }
 
-async function colectarPuntos(from, hand) {
-
-  result = {
-    puntos: 0,
-    usados: 0,
-    total: 0,
-    personas: 0
-  }
-
-  let personas = 0;
-  let puntos = new BigNumber(0)
-  let user = await selectorBinario(from, true)
-
-  if (user !== undefined) {
-
-    if (user.registered) {
-
-      let array = []
-      let registrados = []
-
-
-      if (hand === 0) {
-        array = [user.left]
-      } else {
-        array = [user.right]
-      }
-
-
-      while (array.length > 0) {
-
-        for (let index = 0; index < array.length; index++) {
-
-          if (array[index] !== WalletVacia && array[index] !== undefined) {
-            let lectura = await selectorBinario(array[index])
-            if (lectura !== undefined) {
-              personas++;
-              if (new BigNumber(lectura.invested).toNumber() > 0) {
-                puntos = puntos.plus(lectura.invested)
-
-              }
-
-              if (lectura.left !== WalletVacia && registrados.indexOf(lectura.left) === -1) {
-                array = array.concat(lectura.left)
-                registrados.push(lectura.left)
-              }
-
-              if (lectura.right !== WalletVacia && registrados.indexOf(lectura.right) === -1) {
-                array = array.concat(lectura.right);
-                registrados.push(lectura.left)
-              }
-
-            } else {
-              console.log("lectura selecor binario indefinido ", array[index])
-            }
-          }
-
-          array.splice(index, 1);
-
-        }
-
-      }
-
-      puntos = puntos.times(50).dividedBy(100)
-
-      //console.log("colectar P: " + puntos.toString(10))
-
-      personas = new BigNumber(personas)
-
-      if (hand === 0) {
-        result = {
-          upline: user.up,
-          dowline: user.left,
-          puntos: puntos.minus(user.lReclamados).plus(user.lExtra).dp(0).toString(10),
-          usados: user.lReclamados,
-          total: puntos.plus(user.lExtra).dp(0).toString(10),
-          crudo: puntos.dp(0).toString(10),
-          personas: personas.toString(10)
-        }
-
-      } else {
-        result = {
-          upline: user.up,
-          dowline: user.right,
-          puntos: puntos.minus(user.rReclamados).plus(user.rExtra).dp(0).toString(10),
-          usados: user.rReclamados,
-          total: puntos.plus(user.lExtra).dp(0).toString(10),
-          crudo: puntos.dp(0).toString(10),
-          personas: personas.toString(10)
-        }
-
-      }
-    }
-
-  }
-
-  return result;
-
-}
-
 async function binariV2(wallet) {
   wallet = (wallet).toLocaleLowerCase()
 
@@ -701,98 +568,11 @@ async function binariV2(wallet) {
 
 }
 
-async function binari(wallet) {
-
-  wallet = (wallet).toLocaleLowerCase()
-
-  await consultarUsuario(wallet, true, true, true);
-
-  let newUser = {}
-
-  let leg = await colectarPuntos(wallet, 0)
-  let leg2 = await colectarPuntos(wallet, 1)
-
-  if (leg.puntos < 0) {
-    leg.puntos = "0"
-  }
-
-  if (leg2.puntos < 0) {
-    leg2.puntos = "0"
-  }
-
-  let retBin = retirableBinario(leg.puntos, leg2.puntos)
-
-  if (new BigNumber(retBin).toNumber() < 0) {
-    retBin = 0
-  }
-
-  let data = { retirableBinario: retBin, upline: leg.upline, left: leg, right: leg2 }
-
-  delete data.left.upline;
-  delete data.right.upline;
-
-  let userTemp = await binario.findOne({ wallet: wallet }, { _id: false })
-
-  let hacerUpdate = false
-
-  if (userTemp !== undefined) {
-
-    if (data.left.dowline !== WalletVacia) {
-      if (new BigNumber(data.left.crudo).toNumber() !== new BigNumber(userTemp.lPuntos).toNumber()) {
-        newUser.lPuntos = data.left.crudo
-        hacerUpdate = true
-      }
-
-      if (new BigNumber(data.left.personas).toNumber() !== new BigNumber(userTemp.lPersonas).toNumber()) {
-        newUser.lPersonas = data.left.personas
-        hacerUpdate = true
-
-      }
-    } else {
-      newUser.lPuntos = "0"
-      newUser.lPersonas = "0"
-      hacerUpdate = true
-
-    }
-
-    if (data.right.dowline !== WalletVacia) {
-
-      if (new BigNumber(data.right.crudo).toNumber() !== new BigNumber(userTemp.rPuntos).toNumber()) {
-        newUser.rPuntos = data.right.crudo
-        hacerUpdate = true
-
-      }
-
-      if (new BigNumber(data.right.personas).toNumber() !== new BigNumber(userTemp.rPersonas).toNumber()) {
-        newUser.rPersonas = data.right.personas
-        hacerUpdate = true
-
-      }
-    } else {
-      newUser.rPuntos = "0"
-      newUser.rPersonas = "0"
-      hacerUpdate = true
-
-    }
-
-    if (hacerUpdate) {
-      await binario.updateOne({ wallet: wallet }, newUser)
-    }
-
-  }
-
-
-  return data;
-
-}
-
 app.get(URL + "usuario/actualizar", async (req, res) => {
 
   let result = {
     result: false
   };
-
-  //console.log(req.query)
 
   if (req.query.wallet) {
 
@@ -955,33 +735,6 @@ async function consultarBinario() {
 
 }
 
-async function selectorBinario(wallet, consultaForzada) {
-  wallet = wallet.toLowerCase()
-  //console.log("selector: " + wallet)
-
-  let consulta = undefined;
-
-  consulta = binarioindexado[wallet]
-
-  let userTemp = null;
-
-  try {
-    userTemp = await binario.findOne({ wallet: wallet }, { _id: false })
-
-  } catch (error) {
-    console.log(error.toString())
-  }
-
-  if (consulta === undefined || consultaForzada || userTemp === null) {
-    await consultarUsuario(wallet, true)
-  }
-
-  consulta = binarioindexado[wallet]
-
-  return consulta
-
-}
-
 app.post(URL + "puntos/add", async (req, res) => {
 
   let result = {
@@ -1033,11 +786,11 @@ app.post(URL + "puntos/add", async (req, res) => {
 })
 
 async function escalarRedV2() {
-
+  await consultarBinario();
   let lista2 = await binario.find({}, { wallet: true, idBlock: true }).sort({ idBlock: -1 })
 
   console.log("---- V2 Start Loop / escalar red LISTA ----")
-
+  
   for (let index = 0; index < lista2.length; index++) {
     //console.log(index, lista2[index].wallet, lista2[index].idBlock)
     await delay(0.4);
@@ -1047,7 +800,7 @@ async function escalarRedV2() {
   }
 
   console.log("----v2 END Loop / escalar red ----")
-
+  await consultarBinario();
 }
 
 async function conectarUpline(from) {
@@ -1356,10 +1109,16 @@ async function conectarUpline(from) {
 
   userTemp = await binario.findOne({ wallet: from }, { _id: false })
 
+  if (from !== WalletVacia && !userTemp.registered && userTemp.lReclamados === "0" && userTemp.rReclamados === "0" && (userTemp.lastUpdate === 0 || userTemp.lastUpdate === undefined || userTemp.lastUpdate < Date.now() - 86400 * 1000)) {
+    console.log("Cuenta inactiva:  " + from)
+    binario.deleteOne({ wallet: from }).then(() => {
+      console.log("Borrado cuenta inactiva: " + from)
+    })
+    .catch((e) => { 
+      console.log(e.toString())
+    })
 
-  if (from !== WalletVacia && !userTemp.registered && userTemp.lReclamados === "0" && userTemp.rReclamados === "0") {
-    //await binario.deleteOne({ wallet: from })
-    console.log("se deberia borrar: from:  " + from)
+    result = false
 
   }
 
@@ -1423,6 +1182,7 @@ async function crearUsuario(from) {
     newUser = {
       wallet: from,
       registered: false,
+      lastUpdate: Date.now(),
       invested: newUser.invested,
       invested_leader: newUser.invested_leader,
       upTo: upTo.toString(10),
@@ -1561,12 +1321,10 @@ async function actualizarUsuario(from, data) {
 
     } catch (error) { }
 
-
     let invertido = new BigNumber(0)
     let leader = new BigNumber(0)
     let upTo = new BigNumber(0)
     let porcentaje = await contrato.methods.porcent().call()
-
 
     if (investorNew.registered) {
       newUser.idBlock = parseInt(await contrato.methods.addressToId(from).call())
@@ -1576,7 +1334,6 @@ async function actualizarUsuario(from, data) {
 
       newUser.hand = parseInt(consulta._lado);
       if (newUser.hand <= 1 && userTemp.referer === WalletVacia) {
-
         newUser.referer = (consulta._referer).toLowerCase();
 
       }
@@ -1604,6 +1361,7 @@ async function actualizarUsuario(from, data) {
 
       newUser.retirableA = new BigNumber(await contrato.methods.retirableA(from).call()).toNumber()
 
+      newUser.lastUpdate = Date.now() 
 
     } else {
       newUser.registered = false;
@@ -1651,25 +1409,6 @@ async function actualizarUsuario(from, data) {
 
   return result;
 
-}
-
-async function consultarLados(from) {
-  from = from.toLowerCase()
-  let userTemp = await selectorBinario(from, true)
-  let array = []
-
-  if (userTemp !== null) {
-
-    if (userTemp.left && userTemp.left !== WalletVacia) {
-      array.push(userTemp.left)
-    }
-
-    if (userTemp.right && userTemp.right !== WalletVacia) {
-      array.push(userTemp.right)
-    }
-  }
-
-  return array
 }
 
 app.get(URL + "total/retirar", async (req, res) => {
