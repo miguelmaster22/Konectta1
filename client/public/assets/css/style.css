@@ -77,11 +77,14 @@ h6 {
 # Header
 --------------------------------------------------------------*/
 #header {
-  height: 70px;
+  height: 70px; /* Asegúrate que esta altura sea suficiente */
   transition: all 0.5s;
   z-index: 997;
   transition: all 0.5s;
   background: rgba(42, 44, 57, 0.9);
+  /* Si usas Flexbox, asegúrate de alinear items verticalmente */
+  /* display: flex; */
+  /* align-items: center; */
 }
 
 #header.header-transparent {
@@ -132,20 +135,27 @@ h6 {
   position: relative;
 }
 
+/* Estilos específicos para el perfil/wallet en el header */
 .header-nav .nav-profile {
-  color: #cccccc;
-  margin-top: 80px; /* Adjust if needed based on header height */
+  color: #cccccc; /* Color del texto de la wallet */
+  /* margin-top: 80px; /* ¡Este valor parece muy grande! Podría estar empujando hacia abajo */
+  margin-top: 0; /* Intenta resetear el margen superior */
   margin-right: 50px;
   position: relative;
+  display: flex; /* Usar flex para alinear logo y texto */
+  align-items: center; /* Alinear verticalmente */
+  height: 100%; /* Ocupar la altura del header si es necesario */
 }
 
 .header-nav .nav-profile img {
-  max-height: 50px; /* Keep original size or adjust if needed */
+  max-height: 30px; /* Ajusta el tamaño del logo si es necesario */
+  margin-right: 8px; /* Espacio entre logo y texto */
 }
 
 .header-nav .nav-profile span {
-  font-size: 14px;
+  font-size: 12px; /* Ajusta el tamaño del texto de la wallet */
   font-weight: 600;
+  white-space: nowrap; /* Evitar que el texto se divida */
 }
 
 .header-nav .badge-number {
@@ -156,10 +166,10 @@ h6 {
   padding: 2px 4px; /* Slightly reduced */
 }
 
-.header-nav .profile {
+.header-nav .profile { /* Dropdown menu */
   min-width: 240px;
   padding-bottom: 0;
-  top: 8px !important;
+  top: 8px !important; /* Ajusta si el dropdown no se alinea bien */
 }
 
 .header-nav .profile .dropdown-header h6 {
@@ -197,6 +207,10 @@ h6 {
 */
 .navbar {
   padding: 0;
+  display: flex; /* Usar flexbox para alinear menú y perfil */
+  justify-content: space-between; /* Poner espacio entre menú y perfil */
+  align-items: center; /* Alinear verticalmente */
+  height: 100%; /* Ocupar altura del header */
 }
 
 .navbar ul {
@@ -210,6 +224,11 @@ h6 {
 .navbar li {
   position: relative;
 }
+
+.navbar > ul { /* Selecciona solo la lista principal de navegación */
+  margin-right: auto; /* Empuja el menú de perfil a la derecha */
+}
+
 
 .navbar a,
 .navbar a:focus {
@@ -325,6 +344,10 @@ h6 {
   }
 
   .navbar ul {
+    display: none;
+  }
+   /* Ocultar perfil en móvil si el menú hamburguesa lo maneja */
+  .header-nav .nav-profile {
     display: none;
   }
 }
@@ -1759,6 +1782,50 @@ button,
   text-align: center; /* Center text if needed */
   vertical-align: middle; /* Align vertically if needed */
 }
+
+/* --- Posibles Soluciones para Alinear Logo/Wallet en Header --- */
+/* Reemplaza '.clase-del-logo-wallet' con la clase o ID real del contenedor del logo y la wallet */
+
+/* Opción 1: Ajustar margen superior (si tiene margen extra) */
+/* .clase-del-logo-wallet { */
+/* margin-top: 0 !important;  */
+/* /* O un valor negativo si necesita subir más: margin-top: -10px !important; */
+/* } */
+
+/* Opción 2: Ajustar posición 'top' (si usa position: relative/absolute) */
+/* .clase-del-logo-wallet { */
+/* position: relative; /* O absolute, dependiendo de tu layout */ */
+/* top: -5px !important; /* Ajusta el valor negativo para subirlo */ */
+/* } */
+
+/* Opción 3: Ajustar alineación Flexbox (si el header usa flex) */
+/* #header { /* O la clase del contenedor directo del logo/wallet */ */
+/* display: flex; */
+/* align-items: center !important; /* Alinea verticalmente al centro */ */
+/* } */
+/* .navbar { /* Asegurarse que la navbar también use flex y alinee */
+/* display: flex; */
+/* align-items: center; */
+/* } */
+/* .header-nav .nav-profile { /* Asegurarse que el perfil se alinee */
+/* display: flex; */
+/* align-items: center; */
+/* margin-top: 0; /* Resetear margen */
+/* } */
+
+
+/* Opción 4: Ajustar line-height */
+/* .clase-del-logo-wallet { */
+/* line-height: normal !important; /* O un valor específico como 1.2 */ */
+/* } */
+
+/* Opción 5: Asegurarse que cabe en el header (si el texto es muy grande) */
+/* .clase-del-logo-wallet span { /* Asumiendo que la dirección está en un span */ */
+/* font-size: 12px; /* Reducir tamaño si es necesario */ */
+/* } */
+/* .clase-del-logo-wallet img { */
+/* max-height: 30px; /* Reducir tamaño del logo si es necesario */ */
+/* } */
 
 
 @media (max-width: 860px) {
