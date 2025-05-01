@@ -225,22 +225,26 @@ export default class Home extends Component {
         .tiempo()
         .call({ from: investor.wallet });
 
-      tiempo = tiempo * 1000;
+      tiempo = parseInt(tiempo) * 1000;
 
       let lastInicio = []
 
       for (let i = 0; i < verdepositos.length; i++) {
         let deposit = verdepositos[i]
 
+        deposit.inicio = parseInt(deposit.inicio) 
+        deposit.factor = parseInt(deposit.factor) 
+        deposit.pasivo = parseInt(deposit.pasivo) 
+        deposit.valor = parseInt(deposit.valor)
+        deposit.retirado = parseInt(deposit.retirado)
+
         let porcentiempo =
           ((Date.now() - deposit.inicio * 1000) * 100) / tiempo;
 
         lastInicio.push(deposit.inicio * 1000)
 
-
         let inicio = new Date(deposit.inicio * 1000);
         inicio = inicio.getDate() + "/" + (inicio.getMonth() + 1) + "/" + inicio.getFullYear()
-
 
         let fecha = new Date(deposit.inicio * 1000 + tiempo);
         fecha = fecha.getDate() + "/" + (fecha.getMonth() + 1) + "/" + fecha.getFullYear()

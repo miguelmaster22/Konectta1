@@ -115,10 +115,8 @@ class App extends Component {
               }
             }
 
-
             if (loc.indexOf('view') > 0) {
-
-              if (!web3.utils.isAddress(verWallet)) {
+              if (verWallet.length < 42) {
                 verWallet = await binaryProxy.methods.idToAddress(verWallet).call({ from: accounts[0] });
               }
             }
@@ -188,14 +186,12 @@ class App extends Component {
   }
 
 
-
-
   render() {
 
     var ruta = "";
     var loc = document.location.href;
 
-    var vWallet = "0x0000000000000000000000000000000000000000"
+    let vWallet = "0x0000000000000000000000000000000000000000"
     //console.log(loc);
     if (loc.indexOf('?') > 0) {
 
@@ -208,6 +204,8 @@ class App extends Component {
         vWallet = loc.split('?')[1];
         vWallet = vWallet.split('&')[1];
         vWallet = vWallet.split('=')[1];
+        vWallet = vWallet.split('#')[0];
+
       }
 
     }

@@ -252,7 +252,7 @@ export default class CrowdFunding extends Component {
     if (this.props.investor.registered) {
       let inves = this.props.investor
       this.setState({
-        id: inves.id,
+        id: parseInt(inves.id),
         upline: inves.upline
       })
     }
