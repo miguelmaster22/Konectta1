@@ -422,11 +422,11 @@ export default class CrowdFunding extends Component {
 
       if (
         (
-          (
+          parseInt(
             await this.props.contract.binaryProxy.methods
               .leveling(this.props.currentAccount)
               .call({ from: this.props.currentAccount })
-          ).toLowerCase() === 1
+          ) === 1
           ||
           sponsor !== "0x0000000000000000000000000000000000000000"
         ) &&
