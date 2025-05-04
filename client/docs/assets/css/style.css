@@ -40,14 +40,16 @@ h6 {
   bottom: 15px;
   z-index: 996;
   background: #ef6603;
-  width: 40px;
-  height: 40px;
+  /* Reduced size (approx half of original 40px) */
+  width: 20px;
+  height: 20px;
   border-radius: 50px;
   transition: all 0.4s;
 }
 
 .back-to-top i {
-  font-size: 28px;
+  /* Reduced icon size (approx half of original 28px) */
+  font-size: 14px;
   color: #fff;
   line-height: 0;
 }
@@ -75,11 +77,14 @@ h6 {
 # Header
 --------------------------------------------------------------*/
 #header {
-  height: 70px;
+  height: 70px; /* Asegúrate que esta altura sea suficiente */
   transition: all 0.5s;
   z-index: 997;
   transition: all 0.5s;
   background: rgba(42, 44, 57, 0.9);
+  /* Si usas Flexbox, asegúrate de alinear items verticalmente */
+  /* display: flex; */
+  /* align-items: center; */
 }
 
 #header.header-transparent {
@@ -108,7 +113,7 @@ h6 {
 #header .logo img {
   padding: 0;
   margin: 0;
-  max-height: 80px;
+  max-height: 80px; /* Adjust if logo looks too big compared to buttons */
 }
 
 /*--------------------------------------------------------------
@@ -124,40 +129,47 @@ h6 {
 }
 
 .header-nav .nav-icon {
-  font-size: 22px;
+  font-size: 22px; /* Keep original size or adjust if needed */
   color: #012970;
   margin-right: 25px;
   position: relative;
 }
 
+/* Estilos específicos para el perfil/wallet en el header */
 .header-nav .nav-profile {
-  color: #cccccc;
-  margin-top: 80px;
+  color: #cccccc; /* Color del texto de la wallet */
+  /* margin-top: 80px; /* ¡Este valor parece muy grande! Podría estar empujando hacia abajo */
+  margin-top: 0; /* Intenta resetear el margen superior */
   margin-right: 50px;
   position: relative;
+  display: flex; /* Usar flex para alinear logo y texto */
+  align-items: center; /* Alinear verticalmente */
+  height: 100%; /* Ocupar la altura del header si es necesario */
 }
 
 .header-nav .nav-profile img {
-  max-height: 50px;
+  max-height: 30px; /* Ajusta el tamaño del logo si es necesario */
+  margin-right: 8px; /* Espacio entre logo y texto */
 }
 
 .header-nav .nav-profile span {
-  font-size: 14px;
+  font-size: 12px; /* Ajusta el tamaño del texto de la wallet */
   font-weight: 600;
+  white-space: nowrap; /* Evitar que el texto se divida */
 }
 
 .header-nav .badge-number {
   position: absolute;
   inset: -2px -5px auto auto;
   font-weight: normal;
-  font-size: 12px;
-  padding: 3px 6px;
+  font-size: 10px; /* Slightly reduced */
+  padding: 2px 4px; /* Slightly reduced */
 }
 
-.header-nav .profile {
+.header-nav .profile { /* Dropdown menu */
   min-width: 240px;
   padding-bottom: 0;
-  top: 8px !important;
+  top: 8px !important; /* Ajusta si el dropdown no se alinea bien */
 }
 
 .header-nav .profile .dropdown-header h6 {
@@ -191,10 +203,14 @@ h6 {
 # Navigation Menu
 --------------------------------------------------------------*/
 /**
-* Desktop Navigation 
+* Desktop Navigation
 */
 .navbar {
   padding: 0;
+  display: flex; /* Usar flexbox para alinear menú y perfil */
+  justify-content: space-between; /* Poner espacio entre menú y perfil */
+  align-items: center; /* Alinear verticalmente */
+  height: 100%; /* Ocupar altura del header */
 }
 
 .navbar ul {
@@ -209,14 +225,20 @@ h6 {
   position: relative;
 }
 
+.navbar > ul { /* Selecciona solo la lista principal de navegación */
+  margin-right: auto; /* Empuja el menú de perfil a la derecha */
+}
+
+
 .navbar a,
 .navbar a:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 15px 7px 15px;
+  /* Reduced padding and font-size (approx half of original) */
+  padding: 3px 8px 4px 8px;
   margin-left: 5px;
-  font-size: 14px;
+  font-size: 12px; /* Reduced from 14px */
   color: #fff;
   white-space: nowrap;
   transition: 0.3s;
@@ -225,9 +247,9 @@ h6 {
 
 .navbar a i,
 .navbar a:focus i {
-  font-size: 12px;
+  font-size: 10px; /* Reduced icon size */
   line-height: 0;
-  margin-left: 5px;
+  margin-left: 4px; /* Adjusted margin */
 }
 
 .navbar a:hover,
@@ -258,14 +280,15 @@ h6 {
 }
 
 .navbar .dropdown ul a {
-  padding: 10px 20px;
+  /* Adjusted padding and font-size */
+  padding: 8px 15px;
   color: #2a2c39;
   margin: 0 5px;
-  font-size: 14px;
+  font-size: 12px; /* Reduced from 14px */
 }
 
 .navbar .dropdown ul a i {
-  font-size: 12px;
+  font-size: 10px; /* Reduced icon size */
 }
 
 .navbar .dropdown ul a:hover,
@@ -304,11 +327,11 @@ h6 {
 }
 
 /**
-* Mobile Navigation 
+* Mobile Navigation
 */
 .mobile-nav-toggle {
   color: #fff;
-  font-size: 28px;
+  font-size: 28px; /* Keep original size */
   cursor: pointer;
   display: none;
   line-height: 0;
@@ -321,6 +344,10 @@ h6 {
   }
 
   .navbar ul {
+    display: none;
+  }
+   /* Ocultar perfil en móvil si el menú hamburguesa lo maneja */
+  .header-nav .nav-profile {
     display: none;
   }
 }
@@ -359,9 +386,10 @@ h6 {
 
 .navbar-mobile a,
 .navbar-mobile a:focus {
-  padding: 10px 20px;
+  /* Reduced padding and font-size */
+  padding: 5px 10px; /* Approx half */
   margin: 5px;
-  font-size: 15px;
+  font-size: 12px; /* Reduced from 15px */
   color: #2a2c39;
 }
 
@@ -393,11 +421,12 @@ h6 {
 }
 
 .navbar-mobile .dropdown ul a {
-  padding: 10px 20px;
+  /* Reduced padding */
+  padding: 5px 10px; /* Approx half */
 }
 
 .navbar-mobile .dropdown ul a i {
-  font-size: 12px;
+  font-size: 10px; /* Reduced icon size */
 }
 
 .navbar-mobile .dropdown ul a:hover,
@@ -419,7 +448,7 @@ h6 {
   position: relative;
   background: linear-gradient(0deg, rgb(42, 44, 57) 0%, rgb(51, 54, 74) 100%);
   padding: 0;
-  background-image: url("../img/background_kap3.jpg");
+  background-image: url("../img/background_kap3.jpg"); /* Ensure this path is correct */
   background-size: cover;
   background-position: inherit;
   background-repeat: no-repeat;
@@ -469,10 +498,11 @@ h6 {
 #hero .btn-get-started {
   font-family: "Raleway", Tahoma, Verdana, sans-serif;
   font-weight: 500;
-  font-size: 16px;
+  /* Reduced font-size and padding (approx half of original) */
+  font-size: 13px; /* Reduced from 16px */
   letter-spacing: 1px;
   display: inline-block;
-  padding: 20px 45px;
+  padding: 10px 22px; /* Approx half of 20px 45px */
   border-radius: 50px;
   transition: 0.5s;
   line-height: 1;
@@ -689,10 +719,11 @@ section {
 .about .content .btn-learn-more {
   font-family: "Raleway", Tahoma, Verdana, sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  /* Reduced font-size and padding (approx half of original) */
+  font-size: 12px; /* Reduced from 14px */
   letter-spacing: 1px;
   display: inline-block;
-  padding: 12px 32px;
+  padding: 6px 16px; /* Approx half of 12px 32px */
   border-radius: 5px;
   transition: 0.3s;
   line-height: 1;
@@ -816,10 +847,11 @@ section {
   font-family: "Raleway", Tahoma, Verdana, sans-serif;
   text-transform: uppercase;
   font-weight: 700;
-  font-size: 14px;
+  /* Reduced font-size and padding (approx half of original) */
+  font-size: 12px; /* Reduced from 14px */
   letter-spacing: 1px;
   display: inline-block;
-  padding: 12px 30px;
+  padding: 6px 15px; /* Approx half of 12px 30px */
   border-radius: 50px;
   transition: 0.5s;
   margin: 10px;
@@ -1256,11 +1288,12 @@ section {
 .pricing .btn-buy {
   background: #ef6603;
   display: inline-block;
-  padding: 8px 35px 10px 35px;
+  /* Reduced padding and font-size (approx half of original) */
+  padding: 4px 18px 5px 18px; /* Approx half of 8px 35px 10px 35px */
   border-radius: 50px;
   color: #fff;
   transition: none;
-  font-size: 14px;
+  font-size: 12px; /* Reduced from 14px */
   font-weight: 400;
   font-family: "Raleway", Tahoma, Verdana, sans-serif;
   font-weight: 600;
@@ -1394,8 +1427,9 @@ section {
   transition: color 0.3s;
   margin: 0 3px;
   border-radius: 50px;
-  width: 36px;
-  height: 36px;
+  /* Reduced size (approx half of original 36px) */
+  width: 18px;
+  height: 18px;
   background: rgba(239, 102, 3, 0.8);
   transition: ease-in-out 0.3s;
   color: #fff;
@@ -1409,7 +1443,8 @@ section {
 }
 
 .team .member .social i {
-  font-size: 18px;
+  /* Reduced icon size (approx half of original 18px) */
+  font-size: 9px;
   line-height: 0;
 }
 
@@ -1561,10 +1596,13 @@ section {
 .contact .php-email-form button[type="submit"] {
   background: #ef6603;
   border: 0;
-  padding: 10px 24px;
+  /* Reduced padding (approx half of original 10px 24px) */
+  padding: 5px 12px;
   color: #fff;
   transition: 0.4s;
   border-radius: 50px;
+  /* Reduced font-size */
+  font-size: 12px;
 }
 
 .contact .php-email-form button[type="submit"]:hover {
@@ -1680,17 +1718,18 @@ section {
 }
 
 #footer .social-links a {
-  font-size: 18px;
+  /* Reduced icon size, padding, width, height (approx half of original) */
+  font-size: 9px; /* Reduced from 18px */
   display: inline-block;
   background: #ef6603;
   color: #fff;
   line-height: 1;
-  padding: 8px 0;
+  padding: 4px 0; /* Approx half of 8px */
   margin-right: 4px;
   border-radius: 50%;
   text-align: center;
-  width: 36px;
-  height: 36px;
+  width: 18px; /* Approx half of 36px */
+  height: 18px; /* Approx half of 36px */
   transition: 0.3s;
 }
 
@@ -1707,6 +1746,87 @@ section {
 #footer .credits {
   font-size: 13px;
 }
+
+/*--------------------------------------------------------------
+# Generic Button Styles
+--------------------------------------------------------------*/
+/* Apply reduced padding and font size to general buttons */
+button,
+.btn { /* You might need to add other common classes like .button */
+  /* Adjust these values to get the desired size */
+  padding: 6px 15px !important; /* Use !important cautiously */
+  font-size: 12px !important; /* Use !important cautiously */
+  line-height: 1.5;
+}
+
+/*--------------------------------------------------------------
+# Specific Adjustments
+--------------------------------------------------------------*/
+
+/* Mover el botón "Take Profit" a la derecha */
+/* Reemplaza '.take-profit-button-class' con la clase real del botón */
+.take-profit-button-class {
+  margin-left: 15px !important; /* Ajusta el valor (e.g., 10px, 20px) como necesites */
+  /* Asegúrate de que el botón no sea 'display: block' si quieres que el margen funcione horizontalmente */
+  display: inline-block; /* O 'inline', 'inline-flex' */
+}
+
+/* Hacer el texto "7% monthly" más pequeño y ajustar el cuadro */
+/* Reemplaza '.percentage-text-class' con la clase real del elemento que contiene "7% monthly" */
+.percentage-text-class {
+  font-size: 10px !important; /* Ajusta el valor (e.g., 11px, 9px) como necesites */
+  padding: 4px 8px !important; /* Reduce padding for tighter fit */
+  display: inline-block; /* Needed for padding and width */
+  width: auto; /* Let width adjust to content */
+  min-width: fit-content; /* Ensure it's at least as wide as content */
+  text-align: center; /* Center text if needed */
+  vertical-align: middle; /* Align vertically if needed */
+}
+
+/* --- Posibles Soluciones para Alinear Logo/Wallet en Header --- */
+/* Reemplaza '.clase-del-logo-wallet' con la clase o ID real del contenedor del logo y la wallet */
+
+/* Opción 1: Ajustar margen superior (si tiene margen extra) */
+/* .clase-del-logo-wallet { */
+/* margin-top: 0 !important;  */
+/* /* O un valor negativo si necesita subir más: margin-top: -10px !important; */
+/* } */
+
+/* Opción 2: Ajustar posición 'top' (si usa position: relative/absolute) */
+/* .clase-del-logo-wallet { */
+/* position: relative; /* O absolute, dependiendo de tu layout */ */
+/* top: -5px !important; /* Ajusta el valor negativo para subirlo */ */
+/* } */
+
+/* Opción 3: Ajustar alineación Flexbox (si el header usa flex) */
+/* #header { /* O la clase del contenedor directo del logo/wallet */ */
+/* display: flex; */
+/* align-items: center !important; /* Alinea verticalmente al centro */ */
+/* } */
+/* .navbar { /* Asegurarse que la navbar también use flex y alinee */
+/* display: flex; */
+/* align-items: center; */
+/* } */
+/* .header-nav .nav-profile { /* Asegurarse que el perfil se alinee */
+/* display: flex; */
+/* align-items: center; */
+/* margin-top: 0; /* Resetear margen */
+/* } */
+
+
+/* Opción 4: Ajustar line-height */
+/* .clase-del-logo-wallet { */
+/* line-height: normal !important; /* O un valor específico como 1.2 */ */
+/* } */
+
+/* Opción 5: Asegurarse que cabe en el header (si el texto es muy grande) */
+/* .clase-del-logo-wallet span { /* Asumiendo que la dirección está en un span */ */
+/* font-size: 12px; /* Reducir tamaño si es necesario */ */
+/* } */
+/* .clase-del-logo-wallet img { */
+/* max-height: 30px; /* Reducir tamaño del logo si es necesario */ */
+/* } */
+
 
 @media (max-width: 860px) {
   .bkgbluedegradate {
