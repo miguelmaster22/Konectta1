@@ -14,7 +14,6 @@ if (fs.existsSync(localEnvPath)) {
 
 const env = process.env
 const express = require('express');
-const connectDB = require('./database/db.js');
 const v1Routes = require('./routes/v1/index');
 const v2Routes = require('./routes/v2/index');
 const app = express();
@@ -25,12 +24,10 @@ const PORT = env.PORT || 3001;
 const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",") : [];
 app.use(cors({
   origin: allowedOrigins,
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 }))
 app.use(express.json());
-
-connectDB();
 
 app.use('/api/v1', v1Routes);
 app.use('/api/v2', v2Routes);

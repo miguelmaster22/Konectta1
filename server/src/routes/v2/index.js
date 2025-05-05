@@ -1,7 +1,6 @@
 const { Web3 } = require("web3");
 const Cryptr = require("cryptr");
 const BigNumber = require("bignumber.js");
-const mongoose = require('mongoose');
 const cron = require('node-cron');
 
 const env = process.env
@@ -11,7 +10,6 @@ const router = express.Router();
 
 function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
-const uriMongoDB = env.APP_URIMONGODB + env.APP_NAME + "?retryWrites=true&w=majority"
 const WalletVacia = "0x0000000000000000000000000000000000000000"
 const factorBlock = 1.7
 const factorFail = 30
@@ -34,39 +32,6 @@ cron.schedule('0 0 */1 * * *', async () => {
 
 }, null, true, 'America/Bogota');
 
-
-const Schema = mongoose.Schema;
-
-const Binario = new Schema({
-  _id: String,
-  wallet: String,
-  registered: Boolean,
-  invested: String,
-  invested_leader: String,
-  upTo: String,
-  lastUpdate: Number,
-  reclamados: String,
-  referer: String,
-  up: String,
-  left: String,
-  lReclamados: String,
-  lExtra: String,
-  lPersonas: String,
-  lPuntos: String,
-  right: String,
-  rReclamados: String,
-  rExtra: String,
-  rPersonas: String,
-  rPuntos: String,
-  idBlock: Number,
-  idBlock_old: Number,
-  puntosActivos: String,
-  hand: Number,
-  retirableA: Number
-
-});
-
-const binario = mongoose.model('binarios-v2', Binario);
 
 const addressContrato = env.REACT_APP_SMARTCONTRACT; //Nevo v4
 
@@ -177,20 +142,16 @@ function decryptString(s, KEY) {
   }
 }
 
-iniciarAplicacion();
+//iniciarAplicacion();
 
 async function iniciarAplicacion() {
 
   if (!appReady) {
-    await mongoose.connect(uriMongoDB)
-      .then(async () => {
-        console.log("conectado MongoDB");
 
-        await escalarRedV2(["0x04302e4e19552635EADd013eFe54E10f30BA1Bf2"])
+    //await escalarRedV2(["0x04302e4e19552635EADd013eFe54E10f30BA1Bf2"])
 
-        console.log(">---- hecho! -------<")
+    console.log(">---- hecho! -------<")
 
-      })
 
   }
 
