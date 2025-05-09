@@ -685,14 +685,10 @@ router.route("/puntos/add").post( async (req, res) => {
         let newUser = {}
 
         if (hand === 0) {
-          newUser = {
-            lExtra: new BigNumber(user.lExtra).plus(puntos).toString(10)
-          }
-
+          newUser.lExtra = new BigNumber(user.lExtra).plus(puntos).toString(10)
+          
         } else {
-          newUser = {
-            rExtra: new BigNumber(user.rExtra).plus(puntos).toString(10)
-          }
+          newUser.rExtra = new BigNumber(user.rExtra).plus(puntos).toString(10)
         }
 
         await services.updateUser(wallet)
@@ -1058,16 +1054,7 @@ async function consultarUsuario(from, agregateBinario, updateInfoBlockchain, con
     await actualizarUsuario(from, {}, false) /// deshabilitar recuecuperacion reclamado del v1
   }
 
-  try {
-    userTemp = await services.getUser(from)
-
-  } catch (error) {
-    console.log(error.toString())
-  }
-
-  if (userTemp === null) {
-    userTemp = await services.createNewUser({wallet:from})
-  }
+  userTemp = await services.getUser(from)
 
   if (agregateBinario) {
     binarioindexado[from] = userTemp

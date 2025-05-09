@@ -30,7 +30,7 @@ const getUser = async(wallet) => {
     wallet = wallet.toLowerCase()
     const user = await database.getUserByWallet(wallet);
     if (!user) {
-        return null;
+        return await createNewUser({ wallet });
     }
     return user;
 }
