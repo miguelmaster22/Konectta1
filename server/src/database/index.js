@@ -2,50 +2,36 @@ const { db1, db2 } = require('./connections.js');
 const createUserModel = require('./models/user.model.js');
 const createNonceModel = require('./models/nonce.model.js');
 
-const createNonce = createNonceModel(db1)
+const Nonce = createNonceModel(db1)
 const User = createUserModel(db2)
 
 
 const getNonce = async() => {
-    const nonce = await createNonce.findOne({}).catch((error) => {
-        //console.error('Error creating user:', error.message);
-        return null; // or handle the error as needed
-    })
-    return nonce
+    return await Nonce.findOne({})
 }
 
 const updateNonce = async(nonce) => {
-    const updatedNonce = await createNonce.findOneAndUpdate({}, { lastNonce: nonce, lastUpdate: Date.now() }, { new: true }).catch((error) => {
-        //console.error('Error creating user:', error.message);
-        return null; // or handle the error as needed
-    })
-    return updatedNonce
+    return await Nonce.findOneAndUpdate({}, { lastNonce: nonce, lastUpdate: Date.now() }, { new: true })
 }
 
 const getAllUsers = async()=>{
-    return await User.find({})
+    return await User.find({}, { wallet: true, idBlock: true, lastUpdate: true, _id: false}).sort({ idBlock: -1, lastUpdate: -1 })
 }
 
 const createNewUser = async(user) => {
-    user.wallet = user.wallet.toLowerCase()
-    const newUser = await new User(user).save().catch((error) => {
-        //console.error('Error creating user:', error.message);
-        return null; // or handle the error as needed
-    })
-
-    return newUser;
+    return await new User(user).save();
 }
 
 const deleteUser = async(wallet) => {
-    return await User.findOneAndDelete({ wallet: wallet.toLowerCase() })
+    return await User.findOneAndDelete({ wallet })
 }
 
 const getUserByWallet = async(wallet) => {
-    return await User.findOne({ wallet: wallet.toLowerCase() })
+    return await User.findOne({ wallet})
 }
 
 const updateUser = async(wallet, data) => {
-    return await User.findOneAndUpdate({ wallet: wallet.toLowerCase() }, data, { new: true })
+    return await User.findOneAndUpdate({ wallet }, data, { new: true })
 }
 
 module.exports = {

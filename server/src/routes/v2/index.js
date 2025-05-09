@@ -3,6 +3,8 @@ const Cryptr = require("cryptr");
 const BigNumber = require("bignumber.js");
 const cron = require('node-cron');
 
+const services = require("../../services/index.js");
+
 const env = process.env
 
 const express = require("express");
@@ -176,7 +178,7 @@ async function hacerTakeProfit(wallet) {
   let newUser = {}
 
   try {
-    user = await binario.findOne({ wallet: (wallet).toLocaleLowerCase() }, { _id: false })
+    user = await services.getUser((wallet).toLocaleLowerCase()) 
 
   } catch (error) {
     console.log(error.toString())
@@ -239,7 +241,7 @@ async function hacerTakeProfit(wallet) {
     .corteBinarioDo(wallet, retBinario, pRango.toString(10), 0)
     .send({ gasPrice: gasPrice.toString(10), gas: gas })
     .then(async (r) => {
-      await binario.updateOne({ wallet: (wallet).toLowerCase() }, newUser)
+      await services.updateUser(wallet, newUser)
       console.log("Corte Binario: " + (wallet).toLowerCase())
 
       result.hash = r.transactionHash;
@@ -250,7 +252,7 @@ async function hacerTakeProfit(wallet) {
     .catch(async (e) => {
       let error = e.toString()
       if (error.indexOf("Transaction Hash: ") >= 0) {
-        await binario.updateOne({ wallet: (wallet).toLowerCase() }, newUser)
+        await services.updateUser(wallet, newUser)
         console.log("Corte Binario (2): " + (wallet).toLowerCase())
 
         result.hash = "operation processing is in progress please be patient";
@@ -383,7 +385,7 @@ async function binariV2(wallet) {
 
   let newUser = {}
 
-  let userTemp = await binario.findOne({ wallet: wallet })
+  let userTemp = await services.getUser(wallet) 
 
   let puntosIz = new BigNumber(0)
   let puntosDe = new BigNumber(0)
@@ -399,7 +401,7 @@ async function binariV2(wallet) {
 
         await consultarUsuario(userTemp.left, false, true)
 
-        let uleft = await binario.findOne({ wallet: userTemp.left })
+        let uleft = await services.getUser(userTemp.left) 
 
         if (uleft !== null) {
           if (uleft.lPuntos !== undefined && uleft.rPuntos !== undefined) {
@@ -434,7 +436,7 @@ async function binariV2(wallet) {
 
         await consultarUsuario(userTemp.right, false, true)
 
-        let uright = await binario.findOne({ wallet: userTemp.right })
+        let uright = await services.getUser(userTemp.right) 
 
         if (uright !== null) {
           if (uright.lPuntos !== undefined && uright.rPuntos !== undefined) {
@@ -469,8 +471,7 @@ async function binariV2(wallet) {
 
   }
 
-  await binario.updateOne({ wallet: wallet }, newUser)
-
+  await services.updateUser(wallet, newUser)
 
   //puntos activos
 
@@ -478,7 +479,7 @@ async function binariV2(wallet) {
 
     newUser = {}
 
-    userTemp = await binario.findOne({ wallet: wallet })
+    userTemp = await services.getUser(wallet) 
 
     let pL = new BigNumber(userTemp.lPuntos).plus(userTemp.lExtra).minus(userTemp.lReclamados)
     let pR = new BigNumber(userTemp.rPuntos).plus(userTemp.rExtra).minus(userTemp.rReclamados)
@@ -492,7 +493,7 @@ async function binariV2(wallet) {
 
     //console.log(newUser)
 
-    await binario.updateOne({ wallet: wallet }, newUser)
+    await services.updateUser(wallet, newUser)
   }
 
   return true
@@ -557,7 +558,7 @@ router.route("/binario/actualizar").get( async (req, res) => {
 async function lecturaBinari(wallet) {
 
   await consultarUsuario(wallet, true)
-  let user = await binario.findOne({ wallet: wallet }, { _id: false })
+  let user = await services.getUser(wallet) 
 
   let puntosL = new BigNumber(user.lPuntos).minus(user.lReclamados).plus(user.lExtra).dp(0).toString(10)
   let puntosR = new BigNumber(user.rPuntos).minus(user.rReclamados).plus(user.rExtra).dp(0).toString(10)
@@ -631,7 +632,7 @@ async function consultarBinario() {
 
   try {
 
-    red = await binario.find({}, { _id: false })
+    red = await services.getAllUsers() 
 
     if (red.length > 0) {
 
@@ -673,33 +674,31 @@ router.route("/puntos/add").post( async (req, res) => {
   };
 
   if (typeof req.body.data === "string") {
-    let data = JSON.parse(decryptString(req.body.data, KEY_Secreto));
+    let {token, wallet, puntos, hand} = JSON.parse(decryptString(req.body.data, KEY_Secreto));
 
-    console.log(data)
-
-    if (data.token == TOKEN) {
+    if (token == TOKEN) {
 
       if ("puntos" in data) {
 
-        let user = await binario.findOne({ wallet: (data.wallet).toLocaleLowerCase() }, { _id: false })
+        let user = await services.getUser(wallet) 
 
         let newUser = {}
 
-        if (data.hand === 0) {
+        if (hand === 0) {
           newUser = {
-            lExtra: new BigNumber(user.lExtra).plus(data.puntos).toString(10)
+            lExtra: new BigNumber(user.lExtra).plus(puntos).toString(10)
           }
 
         } else {
           newUser = {
-            rExtra: new BigNumber(user.rExtra).plus(data.puntos).toString(10)
+            rExtra: new BigNumber(user.rExtra).plus(puntos).toString(10)
           }
         }
 
-        await binario.updateOne({ wallet: (data.wallet).toLocaleLowerCase() }, newUser)
-        console.log("puntos asignados: " + (data.wallet).toLocaleLowerCase() + " hand: " + data.hand + " -> " + data.puntos)
+        await services.updateUser(wallet)
+        console.log("puntos asignados: " + (wallet).toLocaleLowerCase() + " hand: " + hand + " -> " + puntos)
 
-        await consultarUsuario((data.wallet).toLocaleLowerCase(), true, true, true)
+        await consultarUsuario((wallet).toLocaleLowerCase(), true, true, true)
 
         result.result = true
       } else {
@@ -718,7 +717,7 @@ router.route("/puntos/add").post( async (req, res) => {
 
 async function escalarRedV2() {
   await consultarBinario();
-  let lista2 = await binario.find({}, { wallet: true, idBlock: true }).sort({ idBlock: -1 })
+  let lista2 = await services.getAllUsers()
 
   console.log("---- V2 Start Loop / escalar red LISTA ----")
   
@@ -743,7 +742,7 @@ async function conectarUpline(from) {
   let userTemp = null;
 
   try {
-    userTemp = await binario.findOne({ wallet: from }, { _id: false })
+    userTemp = await services.getUser(from)
 
   } catch (error) {
     console.log(error.toString())
@@ -764,7 +763,7 @@ async function conectarUpline(from) {
   let referer = (consulta._referer).toLowerCase();
 
   try {
-    userRef = await binario.findOne({ wallet: referer }, { _id: false })
+    userRef = await services.getUser(referer) 
   } catch (error) {
     console.log(error.toString())
   }
@@ -788,7 +787,7 @@ async function conectarUpline(from) {
         if (parseInt(hand) === 0) {
           let ubication = null
           try {
-            ubication = await binario.find({ left: from }, { _id: false })
+            ubication = await services.getUser(from) 
           } catch (error) {
             console.log(error.toString())
           }
@@ -799,7 +798,7 @@ async function conectarUpline(from) {
 
               if (userTemp.up !== ubication[0].wallet) {
                 console.log("Ubicado izquierda largo1 " + from + " up: " + ubication[0].wallet)
-                await binario.updateOne({ wallet: from }, { up: ubication[0].wallet })
+                await services.updateUser(from, { up: ubication[0].wallet })
               }
 
 
@@ -821,11 +820,11 @@ async function conectarUpline(from) {
                 }
               }
 
-              await binario.updateOne({ wallet: from }, { up: ubication[ganador].wallet })
+              await services.updateUser(from, { up: ubication[ganador].wallet })
 
               for (let index = 0; index < ubication.length; index++) {
                 if (index !== ganador) {
-                  await binario.updateOne({ wallet: ubication[ganador].wallet }, { left: WalletVacia, lPuntos: "0" })
+                  await services.updateUser(ubication[index].wallet, { left: WalletVacia, lPuntos: "0" })
 
                 }
 
@@ -843,7 +842,7 @@ async function conectarUpline(from) {
 
             while (accion === 0) {
               try {
-                userRef = await binario.findOne({ wallet: buscando }, { _id: false })
+                userRef = await services.getUser(buscando) 
               } catch (error) {
                 console.log(error.toString())
               }
@@ -855,8 +854,7 @@ async function conectarUpline(from) {
               }
 
               if (userRef.left === from) {
-                await binario.updateOne({ wallet: from }, { up: userRef.wallet })
-
+                await services.updateUser(from, { up: userRef.wallet })
                 accion = 1
                 break;
               }
@@ -864,8 +862,8 @@ async function conectarUpline(from) {
 
               if (userRef.left === WalletVacia && userRef.wallet !== from) {
 
-                await binario.updateOne({ wallet: userRef.wallet }, { left: from })
-                await binario.updateOne({ wallet: from }, { up: userRef.wallet })
+                await services.updateUser(userRef.wallet, { left: from })
+                await services.updateUser(from, { up: userRef.wallet })
 
                 accion = 2
                 break;
@@ -876,8 +874,8 @@ async function conectarUpline(from) {
                 lista.push(userRef.wallet)
               } else {
 
-                await binario.updateOne({ wallet: userRef.wallet }, { left: WalletVacia, lPuntos: "0" })
-
+                await services.updateUser(userRef.wallet, { left: WalletVacia, lPuntos: "0" })
+                
                 accion = 5
                 break;
 
@@ -894,13 +892,13 @@ async function conectarUpline(from) {
 
           let adverso = null
           try {
-            adverso = await binario.find({ right: from }, { _id: false })
+            adverso = await services.getUser(from) 
           } catch (error) {
             console.log(error.toString())
           }
 
           for (let index = 0; index < adverso.length; index++) {
-            await binario.updateOne({ wallet: adverso[index].wallet }, { right: WalletVacia, rPuntos: "0" })
+            await services.updateUser(adverso[index].wallet, { right: WalletVacia, rPuntos: "0" })
           }
 
         }
@@ -908,7 +906,7 @@ async function conectarUpline(from) {
         if (parseInt(hand) === 1) {
           let ubication = null
           try {
-            ubication = await binario.find({ right: from }, { _id: false })
+            ubication = await services.getUser(from) 
           } catch (error) {
             console.log(error.toString())
           }
@@ -918,7 +916,7 @@ async function conectarUpline(from) {
             if (ubication.length === 1) {
               if (userTemp.up !== ubication[0].wallet) {
                 console.log("Ubicado derecha largo1 " + from + " ref: " + referer)
-                await binario.updateOne({ wallet: from }, { up: ubication[0].wallet })
+                await services.updateUser(from, { up: ubication[0].wallet })
               }
             } else {
 
@@ -936,12 +934,12 @@ async function conectarUpline(from) {
 
               }
 
-              await binario.updateOne({ wallet: from }, { up: ubication[ganador].wallet })
+              await services.updateUser(from, { up: ubication[ganador].wallet })
 
               for (let index = 0; index < ubication.length; index++) {
                 if (index !== ganador) {
-                  await binario.updateOne({ wallet: ubication[ganador].wallet }, { right: WalletVacia, rPuntos: "0" })
-
+                  await services.updateUser(ubication[ganador].wallet, { right: WalletVacia, rPuntos: "0" })
+                  
                 }
 
               }
@@ -957,7 +955,7 @@ async function conectarUpline(from) {
 
             while (accion === 0) {
               try {
-                userRef = await binario.findOne({ wallet: buscando }, { _id: false })
+                userRef = await services.getUser(buscando) 
               } catch (error) {
                 console.log(error.toString())
               }
@@ -969,7 +967,7 @@ async function conectarUpline(from) {
               }
 
               if (userRef.right === from) {
-                await binario.updateOne({ wallet: from }, { up: userRef.wallet })
+                await services.updateUser(from, { up: userRef.wallet })
 
                 accion = 1
                 break;
@@ -977,9 +975,8 @@ async function conectarUpline(from) {
 
 
               if (userRef.right === WalletVacia && userRef.wallet !== from) {
-
-                await binario.updateOne({ wallet: userRef.wallet }, { right: from })
-                await binario.updateOne({ wallet: from }, { up: userRef.wallet })
+                await services.updateUser(userRef.wallet, { right: from })
+                await services.updateUser(from, { up: userRef.wallet })
 
                 accion = 2
                 break;
@@ -989,8 +986,7 @@ async function conectarUpline(from) {
               if (lista.indexOf(buscando) === -1) {
                 lista.push(buscando)
               } else {
-
-                await binario.updateOne({ wallet: buscando }, { right: WalletVacia, rPuntos: "0" })
+                await services.updateUser(buscando, { right: WalletVacia, rPuntos: "0" })
 
                 accion = 5
                 break;
@@ -1008,13 +1004,13 @@ async function conectarUpline(from) {
 
           let adverso = null
           try {
-            adverso = await binario.find({ left: from }, { _id: false })
+            adverso = await services.getUser(from) 
           } catch (error) {
             console.log(error.toString())
           }
 
           for (let index = 0; index < adverso.length; index++) {
-            await binario.updateOne({ wallet: adverso[index].wallet }, { left: WalletVacia, lPuntos: "0" })
+            await services.updateUser(adverso[index].wallet, { left: WalletVacia, lPuntos: "0" })
           }
 
         }
@@ -1026,7 +1022,7 @@ async function conectarUpline(from) {
       console.log("wallet: " + from + " sin referer valido: " + referer)
     }
 
-    await binario.updateOne({ wallet: from }, newUser);
+    await services.updateUser(from, newUser)
     await consultarUsuario(from, true);
 
   } else {
@@ -1038,149 +1034,17 @@ async function conectarUpline(from) {
     result = true
   }
 
-  userTemp = await binario.findOne({ wallet: from }, { _id: false })
+  userTemp = await services.getUser(from) 
 
   if (from !== WalletVacia && !userTemp.registered && userTemp.lReclamados === "0" && userTemp.rReclamados === "0" && (userTemp.lastUpdate === 0 || userTemp.lastUpdate === undefined || userTemp.lastUpdate < Date.now() - 86400 * 1000)) {
     console.log("Cuenta inactiva:  " + from)
-    binario.deleteOne({ wallet: from }).then(() => {
-      console.log("Borrado cuenta inactiva: " + from)
-    })
-    .catch((e) => { 
-      console.log(e.toString())
-    })
+    services.deleteUser(from)
 
     result = false
 
   }
 
   return result;
-}
-
-async function crearUsuario(from) {
-  from = from.toLowerCase()
-
-  let userTemp = null;
-  let result = false
-
-  let investorNew = { registered: false }
-
-  let newUser = {}
-
-
-  try {
-    investorNew = await contrato.methods.investors(from).call()
-  } catch (error) { }
-
-  let invertidoReal = new BigNumber(0);
-  let leader = new BigNumber(0)
-  let upTo = new BigNumber(0)
-
-  if (investorNew.registered) {
-
-    let depositos = await contrato.methods.verListaDepositos(from).call();
-
-    for (let index = 0; index < depositos.length; index++) {
-      let dep = new BigNumber(depositos[index].valor)
-
-      if (depositos[index].pasivo) {
-        invertidoReal = invertidoReal.plus(dep)
-      } else {
-        leader = leader.plus(dep)
-      }
-
-      let temp = dep.times(depositos[index].factor).dividedBy(100)
-
-      upTo = upTo.plus(temp)
-
-    }
-
-  }
-
-  newUser.invested_leader = leader.toString(10)
-  newUser.invested = invertidoReal.toString(10)
-
-
-  try {
-    userTemp = await binario.findOne({ wallet: from }, { _id: false })
-
-  } catch (error) {
-    console.log(error.toString())
-  }
-
-
-  if (userTemp === null) {
-
-    newUser = {
-      wallet: from,
-      registered: false,
-      lastUpdate: Date.now(),
-      invested: newUser.invested,
-      invested_leader: newUser.invested_leader,
-      upTo: upTo.toString(10),
-      referer: WalletVacia,
-      up: WalletVacia,
-      left: WalletVacia,
-      lReclamados: "0",
-      lExtra: "0",
-      right: WalletVacia,
-      rReclamados: "0",
-      rExtra: "0",
-      lPuntos: "0",
-      rPuntos: "0",
-      lPersonas: "0",
-      rPersonas: "0",
-      idBlock: 0,
-      idBlock_old: 0,
-      puntosActivos: "0"
-
-    }
-
-    if (investorNew.registered) {
-      newUser.registered = true
-
-      newUser.idBlock = parseInt(await contrato.methods.addressToId(from).call())
-
-      let consulta = await contrato.methods.upline(from).call();
-      newUser.referer = (consulta._referer).toLowerCase();
-    }
-
-    newUser._id = from
-
-    let saveuser = new binario(newUser)
-
-    try {
-      userTemp = await binario.findOne({ wallet: from }, { _id: false })
-
-    } catch (error) {
-      console.log(error.toString())
-    }
-    if (userTemp === null) {
-      await saveuser.save().then(() => {
-        console.log("User Created: " + newUser.wallet);
-
-      }).catch((e) => {
-        console.log(e.toString())
-      })
-    }
-
-    result = newUser
-  } else {
-
-    await binario.updateOne({ wallet: from }, newUser)
-
-    try {
-      userTemp = await binario.findOne({ wallet: from }, { _id: false })
-
-    } catch (error) {
-      console.log(error.toString())
-    }
-
-    result = userTemp
-
-  }
-
-  return result;
-
 }
 
 async function consultarUsuario(from, agregateBinario, updateInfoBlockchain, conectarUp) {
@@ -1195,14 +1059,14 @@ async function consultarUsuario(from, agregateBinario, updateInfoBlockchain, con
   }
 
   try {
-    userTemp = await binario.findOne({ wallet: from }, { _id: false })
+    userTemp = await services.getUser(from)
 
   } catch (error) {
     console.log(error.toString())
   }
 
   if (userTemp === null) {
-    userTemp = await crearUsuario(from)
+    userTemp = await services.createNewUser({wallet:from})
   }
 
   if (agregateBinario) {
@@ -1214,7 +1078,7 @@ async function consultarUsuario(from, agregateBinario, updateInfoBlockchain, con
   if (conectarUp) {
     await conectarUpline(from)
     try {
-      userTemp = await binario.findOne({ wallet: from }, { _id: false })
+      userTemp = await services.getUser(from)
 
     } catch (error) {
       console.log(error.toString())
@@ -1231,7 +1095,7 @@ async function actualizarUsuario(from, data) {
   let userTemp = null;
 
   try {
-    userTemp = await binario.findOne({ wallet: from }, { _id: false })
+    userTemp = await services.getUser(from) 
 
   } catch (error) {
     console.log(error.toString())
@@ -1333,7 +1197,7 @@ async function actualizarUsuario(from, data) {
       newUser.rPersonas = "0"
     }
 
-    await binario.updateOne({ wallet: from }, newUser)
+    await services.updateUser(from, newUser)
 
     result = true
   }
@@ -1349,7 +1213,7 @@ router.route("/total/retirar").get( async (req, res) => {
   */
   //await consultarUsuario("0x0ee1168b2e5d2ba5e6ab4bf6ca00881981d84ab9",false,true)
 
-  let consulta = await binario.find({}, { _id: 0, retirableA: 1, wallet: 1 })
+  let consulta = await services.getAllUsers() 
 
   const initialValue = new BigNumber(0);
   const sumWithInitial = consulta.reduce(

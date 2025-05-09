@@ -18,7 +18,7 @@ const v1Routes = require('./routes/v1/index');
 const v2Routes = require('./routes/v2/index');
 const app = express();
 const cors = require('cors');
-const PORT = env.PORT || 3001;
+const PORT = env.PORT_SERVER || 5000;
 
 
 const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",") : [];
@@ -34,7 +34,10 @@ app.use('/api/v2', v2Routes);
 
 app.use(express.static(path.join(process.cwd(), '../client/docs')));
 
-console.log(process.cwd(), path.join(process.cwd(), '../client/docs'));
+app.use((req, res) => {
+  res.status(404).json({success: false, message: "Ruta no encontrada" });
+});
+//console.log(process.cwd(), path.join(process.cwd(), '../client/docs'));
 
 app.listen(PORT, () => {
   console.log(`WEB - Listening on: http://localhost:${PORT} `);
