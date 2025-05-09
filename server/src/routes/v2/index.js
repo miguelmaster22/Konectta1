@@ -45,9 +45,9 @@ const RED = env.APP_RED ?? "https://bsc-dataseed.binance.org/";
 
 let redes = ["https://bsc-dataseed1.binance.org/", "https://bsc-dataseed2.binance.org/", "https://bsc-dataseed3.binance.org/", "https://bsc-dataseed4.binance.org/"]
 
-let web3 = new Web3(RED); 
-let web3_1 = new Web3(redes[0]); 
-let web3_2 = new Web3(redes[1]); 
+let web3 = new Web3(RED);
+let web3_1 = new Web3(redes[0]);
+let web3_2 = new Web3(redes[1]);
 let web3_3 = new Web3(redes[2]);
 
 let prinka = env.REACT_APP_PRIVATE_KY
@@ -58,7 +58,7 @@ let prinka = env.REACT_APP_PRIVATE_KY
 //prinka = encryptString("...", env.REACT_APP_PRIVATE_CR2)
 //console.log(prinka)
 
-const account_1_priv = decryptString(prinka, env.REACT_APP_PRIVATE_CR2 ?? "AAAAAAAAAAAAAAAA"); 
+const account_1_priv = decryptString(prinka, env.REACT_APP_PRIVATE_CR2 ?? "AAAAAAAAAAAAAAAA");
 
 web3.eth.accounts.wallet.add(account_1_priv);
 web3_1.eth.accounts.wallet.add(account_1_priv);
@@ -161,7 +161,7 @@ async function iniciarAplicacion() {
 
 }
 
-router.route("/").get( (req, res) => {
+router.route("/").get((req, res) => {
   res.send({ online: true });
 });
 
@@ -178,7 +178,7 @@ async function hacerTakeProfit(wallet) {
   let newUser = {}
 
   try {
-    user = await services.getUser((wallet).toLocaleLowerCase()) 
+    user = await services.getUser((wallet).toLocaleLowerCase())
 
   } catch (error) {
     console.log(error.toString())
@@ -380,12 +380,37 @@ function retirableBinario(puntosA, puntosB) {
 
 }
 
+router.route("/usuario/actualizar").get(async (req, res) => {
+
+  let result = {
+    result: false
+  };
+
+  if (req.query.wallet) {
+
+    let wallet = (req.query.wallet).toString().toLocaleLowerCase()
+
+    result.result = await consultarUsuario(wallet, true, true)
+
+
+  } else {
+
+    result = {
+      result: false,
+      error: true,
+      msg: "not valid wallet parameter"
+    };
+  }
+
+
+  res.send(result);
+});
+
 async function binariV2(wallet) {
   wallet = (wallet).toLocaleLowerCase()
 
-  let newUser = {}
-
-  let userTemp = await services.getUser(wallet) 
+  let userTemp = await services.getUser(wallet)
+  let newUserData = {}
 
   let puntosIz = new BigNumber(0)
   let puntosDe = new BigNumber(0)
@@ -395,170 +420,115 @@ async function binariV2(wallet) {
 
   /// recordar restar puntos Extra de cada lado
 
-  if (userTemp !== null) {
-    if (userTemp.left !== undefined) {
-      if (userTemp.left !== WalletVacia) {
+  console.log("Binario in: " + userTemp)
 
-        await consultarUsuario(userTemp.left, false, true)
-
-        let uleft = await services.getUser(userTemp.left) 
-
-        if (uleft !== null) {
-          if (uleft.lPuntos !== undefined && uleft.rPuntos !== undefined) {
-
-            puntosIz = puntosIz.plus(uleft.invested).times(50).dividedBy(100)
-            puntosIz = puntosIz.plus(uleft.lPuntos).plus(uleft.rPuntos)
-
-            if (puntosIz.toNumber() > new BigNumber(userTemp.lPuntos).toNumber()) {
-              newUser.lPuntos = puntosIz.toString(10)
-            }
-
-            personasIz = personasIz.plus(1).plus(uleft.lPersonas).plus(uleft.rPersonas)
-
-            if (personasIz.toNumber() > new BigNumber(userTemp.lPersonas).toNumber()) {
-              newUser.lPersonas = personasIz.toString(10)
-            }
-
-          }
-        }
-
-      } else {
-        newUser.lPuntos = "0"
-        newUser.lPersonas = "0"
-      }
-    } else {
-      newUser.lPuntos = "0"
-      newUser.lPersonas = "0"
-    }
-
-    if (userTemp.right !== undefined) {
-      if (userTemp.right !== WalletVacia) {
-
-        await consultarUsuario(userTemp.right, false, true)
-
-        let uright = await services.getUser(userTemp.right) 
-
-        if (uright !== null) {
-          if (uright.lPuntos !== undefined && uright.rPuntos !== undefined) {
-            puntosDe = puntosDe.plus(uright.invested).times(50).dividedBy(100);
-            puntosDe = puntosDe.plus(uright.lPuntos).plus(uright.rPuntos);
-
-            if (puntosDe.toNumber() > new BigNumber(userTemp.rPuntos).toNumber()) {
-              newUser.rPuntos = puntosDe.toString(10)
-            }
-
-            personasDe = personasDe.plus(1).plus(uright.lPersonas).plus(uright.rPersonas)
-
-            if (personasDe.toNumber() > new BigNumber(userTemp.rPersonas).toNumber()) {
-              newUser.rPersonas = personasDe.toString(10)
-            }
-
-          }
-        }
-
-      } else {
-        newUser.rPuntos = "0"
-        newUser.rPersonas = "0"
-      }
-    } else {
-      newUser.rPuntos = "0"
-      newUser.rPersonas = "0"
-    }
-
-
-  } else {
-    consultarUsuario(wallet, true, true, true);
-
+  if (userTemp === null) {
+    return false
   }
 
-  await services.updateUser(wallet, newUser)
+  if ((userTemp.left !== WalletVacia) || (userTemp.left !== "")) {
+
+    await consultarUsuario(userTemp.left, false, true)
+
+    let uleft = await services.getUser(userTemp.left)
+
+    if (uleft !== null) {
+      if (uleft.lPuntos !== undefined && uleft.rPuntos !== undefined) {
+
+        puntosIz = puntosIz.plus(uleft.invested).times(50).dividedBy(100)
+        puntosIz = puntosIz.plus(uleft.lPuntos).plus(uleft.rPuntos)
+
+        if (puntosIz.toNumber() > new BigNumber(userTemp.lPuntos).toNumber()) {
+          newUserData.lPuntos = puntosIz.toString(10)
+        }
+
+        personasIz = personasIz.plus(1).plus(uleft.lPersonas).plus(uleft.rPersonas)
+
+        if (personasIz.toNumber() > new BigNumber(userTemp.lPersonas).toNumber()) {
+          newUserData.lPersonas = personasIz.toString(10)
+        }
+
+      }
+    }
+
+  } else {
+    newUserData.lPuntos = "0"
+    newUserData.lPersonas = "0"
+  }
+
+  if ((userTemp.right !== WalletVacia) || (userTemp.right !== "")) {
+
+    await consultarUsuario(userTemp.right, false, true)
+
+    let uright = await services.getUser(userTemp.right)
+
+    if (uright !== null) {
+      if (uright.lPuntos !== undefined && uright.rPuntos !== undefined) {
+        puntosDe = puntosDe.plus(uright.invested).times(50).dividedBy(100);
+        puntosDe = puntosDe.plus(uright.lPuntos).plus(uright.rPuntos);
+
+        if (puntosDe.toNumber() > new BigNumber(userTemp.rPuntos).toNumber()) {
+          newUserData.rPuntos = puntosDe.toString(10)
+        }
+
+        personasDe = personasDe.plus(1).plus(uright.lPersonas).plus(uright.rPersonas)
+
+        if (personasDe.toNumber() > new BigNumber(userTemp.rPersonas).toNumber()) {
+          newUserData.rPersonas = personasDe.toString(10)
+        }
+
+      }
+    }
+
+  } else {
+    newUserData.rPuntos = "0"
+    newUserData.rPersonas = "0"
+  }
 
   //puntos activos
-
-  if (userTemp !== null && userTemp.left !== undefined && userTemp.right !== undefined) {
-
-    newUser = {}
-
-    userTemp = await services.getUser(wallet) 
+  if ((userTemp.left !== "") && (userTemp.right !== "")) {
 
     let pL = new BigNumber(userTemp.lPuntos).plus(userTemp.lExtra).minus(userTemp.lReclamados)
     let pR = new BigNumber(userTemp.rPuntos).plus(userTemp.rExtra).minus(userTemp.rReclamados)
 
     if (pL.toNumber() < pR.toNumber()) {
-      newUser.puntosActivos = pL.toString(10)
+      newUserData.puntosActivos = pL.toString(10)
 
     } else {
-      newUser.puntosActivos = pR.toString(10)
+      newUserData.puntosActivos = pR.toString(10)
     }
 
-    //console.log(newUser)
-
-    await services.updateUser(wallet, newUser)
   }
+
+  await services.updateUser(wallet, newUserData)
+
 
   return true
 
 }
 
-router.route("/usuario/actualizar").get( async (req, res) => {
+router.route("/binario/actualizar").get(async (req, res) => {
 
-  let result = {
-    result: false
-  };
+  let { wallet } = req.query
+  wallet = (wallet).toString().toLocaleLowerCase()
 
-  if (req.query.wallet) {
+  if (wallet && wallet !== "" && wallet.length === 42) {
 
-    let wallet = (req.query.wallet).toString().toLocaleLowerCase()
-
-    consultarUsuario(wallet, true, true)
-
-    result.result = true
-
+    res.status(200).json({success: await binariV2(wallet)});
 
   } else {
 
-    result = {
-      result: false,
-      error: true,
-      msg: "not valid wallet parameter"
-    };
+    res.status(400).json({success: false, message: "invalid: wallet parameter"});
+
   }
 
 
-  res.send(result);
-});
-
-router.route("/binario/actualizar").get( async (req, res) => {
-
-  let result = {
-    result: false
-  };
-
-  if (req.query.wallet) {
-
-    let wallet = (req.query.wallet).toString().toLocaleLowerCase()
-
-    await binariV2(wallet)
-
-    result.result = true
-
-  } else {
-
-    result = {
-      result: false,
-      error: true,
-      msg: "not valid wallet parameter"
-    };
-  }
-
-
-  res.send(result);
 });
 
 async function lecturaBinari(wallet) {
 
   await consultarUsuario(wallet, true)
-  let user = await services.getUser(wallet) 
+  let user = await services.getUser(wallet)
 
   let puntosL = new BigNumber(user.lPuntos).minus(user.lReclamados).plus(user.lExtra).dp(0).toString(10)
   let puntosR = new BigNumber(user.rPuntos).minus(user.rReclamados).plus(user.rExtra).dp(0).toString(10)
@@ -600,7 +570,7 @@ async function lecturaBinari(wallet) {
 
 }
 
-router.route("/binario").get( async (req, res) => {
+router.route("/binario").get(async (req, res) => {
 
   let result = {
     result: false
@@ -632,7 +602,7 @@ async function consultarBinario() {
 
   try {
 
-    red = await services.getAllUsers() 
+    red = await services.getAllUsers()
 
     if (red.length > 0) {
 
@@ -667,26 +637,26 @@ async function consultarBinario() {
 
 }
 
-router.route("/puntos/add").post( async (req, res) => {
+router.route("/puntos/add").post(async (req, res) => {
 
   let result = {
     result: false,
   };
 
   if (typeof req.body.data === "string") {
-    let {token, wallet, puntos, hand} = JSON.parse(decryptString(req.body.data, KEY_Secreto));
+    let { token, wallet, puntos, hand } = JSON.parse(decryptString(req.body.data, KEY_Secreto));
 
     if (token == TOKEN) {
 
       if ("puntos" in data) {
 
-        let user = await services.getUser(wallet) 
+        let user = await services.getUser(wallet)
 
         let newUser = {}
 
         if (hand === 0) {
           newUser.lExtra = new BigNumber(user.lExtra).plus(puntos).toString(10)
-          
+
         } else {
           newUser.rExtra = new BigNumber(user.rExtra).plus(puntos).toString(10)
         }
@@ -716,7 +686,7 @@ async function escalarRedV2() {
   let lista2 = await services.getAllUsers()
 
   console.log("---- V2 Start Loop / escalar red LISTA ----")
-  
+
   for (let index = 0; index < lista2.length; index++) {
     //console.log(index, lista2[index].wallet, lista2[index].idBlock)
     await delay(0.4);
@@ -759,7 +729,7 @@ async function conectarUpline(from) {
   let referer = (consulta._referer).toLowerCase();
 
   try {
-    userRef = await services.getUser(referer) 
+    userRef = await services.getUser(referer)
   } catch (error) {
     console.log(error.toString())
   }
@@ -767,7 +737,7 @@ async function conectarUpline(from) {
   let result = false
 
   if (userRef !== null) {
-    if (referer !== WalletVacia) {
+    if (referer !== WalletVacia || referer !== "") {
       newUser.referer = referer
 
       if (userTemp.up === userTemp.wallet) {
@@ -783,7 +753,7 @@ async function conectarUpline(from) {
         if (parseInt(hand) === 0) {
           let ubication = null
           try {
-            ubication = await services.getUser(from) 
+            ubication = await services.getUser(from)
           } catch (error) {
             console.log(error.toString())
           }
@@ -838,7 +808,7 @@ async function conectarUpline(from) {
 
             while (accion === 0) {
               try {
-                userRef = await services.getUser(buscando) 
+                userRef = await services.getUser(buscando)
               } catch (error) {
                 console.log(error.toString())
               }
@@ -871,7 +841,7 @@ async function conectarUpline(from) {
               } else {
 
                 await services.updateUser(userRef.wallet, { left: WalletVacia, lPuntos: "0" })
-                
+
                 accion = 5
                 break;
 
@@ -888,7 +858,7 @@ async function conectarUpline(from) {
 
           let adverso = null
           try {
-            adverso = await services.getUser(from) 
+            adverso = await services.getUser(from)
           } catch (error) {
             console.log(error.toString())
           }
@@ -902,7 +872,7 @@ async function conectarUpline(from) {
         if (parseInt(hand) === 1) {
           let ubication = null
           try {
-            ubication = await services.getUser(from) 
+            ubication = await services.getUser(from)
           } catch (error) {
             console.log(error.toString())
           }
@@ -935,7 +905,7 @@ async function conectarUpline(from) {
               for (let index = 0; index < ubication.length; index++) {
                 if (index !== ganador) {
                   await services.updateUser(ubication[ganador].wallet, { right: WalletVacia, rPuntos: "0" })
-                  
+
                 }
 
               }
@@ -951,7 +921,7 @@ async function conectarUpline(from) {
 
             while (accion === 0) {
               try {
-                userRef = await services.getUser(buscando) 
+                userRef = await services.getUser(buscando)
               } catch (error) {
                 console.log(error.toString())
               }
@@ -1000,7 +970,7 @@ async function conectarUpline(from) {
 
           let adverso = null
           try {
-            adverso = await services.getUser(from) 
+            adverso = await services.getUser(from)
           } catch (error) {
             console.log(error.toString())
           }
@@ -1030,7 +1000,7 @@ async function conectarUpline(from) {
     result = true
   }
 
-  userTemp = await services.getUser(from) 
+  userTemp = await services.getUser(from)
 
   if (from !== WalletVacia && !userTemp.registered && userTemp.lReclamados === "0" && userTemp.rReclamados === "0" && (userTemp.lastUpdate === 0 || userTemp.lastUpdate === undefined || userTemp.lastUpdate < Date.now() - 86400 * 1000)) {
     console.log("Cuenta inactiva:  " + from)
@@ -1082,7 +1052,7 @@ async function actualizarUsuario(from, data) {
   let userTemp = null;
 
   try {
-    userTemp = await services.getUser(from) 
+    userTemp = await services.getUser(from)
 
   } catch (error) {
     console.log(error.toString())
@@ -1143,7 +1113,7 @@ async function actualizarUsuario(from, data) {
 
       newUser.retirableA = new BigNumber(await contrato.methods.retirableA(from).call()).toNumber()
 
-      newUser.lastUpdate = Date.now() 
+      newUser.lastUpdate = Date.now()
 
     } else {
       newUser.registered = false;
@@ -1193,14 +1163,14 @@ async function actualizarUsuario(from, data) {
 
 }
 
-router.route("/total/retirar").get( async (req, res) => {
+router.route("/total/retirar").get(async (req, res) => {
 
   /*
   await escalarRedV2();
   */
   //await consultarUsuario("0x0ee1168b2e5d2ba5e6ab4bf6ca00881981d84ab9",false,true)
 
-  let consulta = await services.getAllUsers() 
+  let consulta = await services.getAllUsers()
 
   const initialValue = new BigNumber(0);
   const sumWithInitial = consulta.reduce(
