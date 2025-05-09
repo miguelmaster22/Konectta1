@@ -19,7 +19,10 @@ const getAllUsers = async()=>{
 }
 
 const createNewUser = async(user) => {
-    return await new User(user).save();
+    return await new User(user).save().catch((err) => {
+        console.log(err)
+        return null
+    })
 }
 
 const deleteUser = async(wallet) => {
