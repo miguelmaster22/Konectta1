@@ -514,11 +514,11 @@ router.route("/binario/actualizar").get(async (req, res) => {
 
   if (wallet && wallet !== "" && wallet.length === 42) {
 
-    res.status(200).json({success: await binariV2(wallet)});
+    res.status(200).json({ success: await binariV2(wallet) });
 
   } else {
 
-    res.status(400).json({success: false, message: "invalid: wallet parameter"});
+    res.status(400).json({ success: false, message: "invalid: wallet parameter" });
 
   }
 
@@ -1049,124 +1049,105 @@ async function consultarUsuario(from, agregateBinario, updateInfoBlockchain, con
 async function actualizarUsuario(from, data) {
   from = from.toLowerCase()
 
-  let userTemp = null;
+  let userTemp = await services.getUser(from)
+
+  if (userTemp === null) return false;
+
+  let newUser = {}
+  let investorNew = { registered: false }
+  let realInvested = new BigNumber(0);
 
   try {
-    userTemp = await services.getUser(from)
+    investorNew = await contrato.methods.investors(from).call()
+  } catch (error) { }
 
-  } catch (error) {
-    console.log(error.toString())
-  }
+  let invertido = new BigNumber(0)
+  let leader = new BigNumber(0)
+  let upTo = new BigNumber(0)
+  let porcentaje = await contrato.methods.porcent().call()
 
-  let result = false
+  if (investorNew.registered) {
+    newUser.idBlock = parseInt(await contrato.methods.addressToId(from).call())
+    newUser.registered = true;
 
-  if (userTemp !== null) {
+    let consulta = await contrato.methods.upline(from).call()
 
-    let investorNew = { registered: false }
+    newUser.hand = parseInt(consulta._lado);
+    if (newUser.hand <= 1 && userTemp.referer === WalletVacia) {
+      newUser.referer = (consulta._referer).toLowerCase();
+    }
 
-    let newUser = {}
+    let depositos = await contrato.methods.verListaDepositos(from).call();
 
-    let realInvested = new BigNumber(0);
+    for (let index = 0; index < depositos.length; index++) {
+      let dep = new BigNumber(depositos[index].valor)
 
-    try {
-      investorNew = await contrato.methods.investors(from).call()
-
-    } catch (error) { }
-
-    let invertido = new BigNumber(0)
-    let leader = new BigNumber(0)
-    let upTo = new BigNumber(0)
-    let porcentaje = await contrato.methods.porcent().call()
-
-    if (investorNew.registered) {
-      newUser.idBlock = parseInt(await contrato.methods.addressToId(from).call())
-      newUser.registered = true;
-
-      let consulta = await contrato.methods.upline(from).call()
-
-      newUser.hand = parseInt(consulta._lado);
-      if (newUser.hand <= 1 && userTemp.referer === WalletVacia) {
-        newUser.referer = (consulta._referer).toLowerCase();
-
-      }
-
-      let depositos = await contrato.methods.verListaDepositos(from).call();
-
-      for (let index = 0; index < depositos.length; index++) {
-        let dep = new BigNumber(depositos[index].valor)
-
-        if (depositos[index].pasivo) {
-          invertido = invertido.plus(dep)
-        } else {
-          leader = leader.plus(dep)
-        }
-
-      }
-
-      if (leader.toNumber(0) > 0) {
-        if (invertido.toNumber() > realInvested.toNumber()) {
-          realInvested = invertido;
-        }
+      if (depositos[index].pasivo) {
+        invertido = invertido.plus(dep)
       } else {
-        realInvested = new BigNumber(investorNew.invested)
+        leader = leader.plus(dep)
       }
 
-      newUser.retirableA = new BigNumber(await contrato.methods.retirableA(from).call()).toNumber()
+    }
 
-      newUser.lastUpdate = Date.now()
-
+    if (leader.toNumber(0) > 0) {
+      if (invertido.toNumber() > realInvested.toNumber()) {
+        realInvested = invertido;
+      }
     } else {
-      newUser.registered = false;
-
+      realInvested = new BigNumber(investorNew.invested)
     }
 
-    newUser.invested = realInvested.toString(10)
+    newUser.retirableA = new BigNumber(await contrato.methods.retirableA(from).call()).toNumber()
+    newUser.lastUpdate = Date.now()
 
-    newUser.invested_leader = leader.toString(10)
+  } else {
+    newUser.registered = false;
 
-    newUser.upTo = upTo.plus(investorNew.invested).times(porcentaje).dividedBy(100).toString(10)
-
-
-    if (data.lReclamados) {
-      newUser.lReclamados = new BigNumber(userTemp.lReclamados).plus(data.lReclamados).toString(10)
-    }
-    if (data.lExtra) {
-      newUser.lExtra = new BigNumber(userTemp.lExtra).plus(data.lExtra).toString(10)
-    }
-
-    if (data.rReclamados) {
-      newUser.rReclamados = new BigNumber(userTemp.rReclamados).plus(data.rReclamados).toString(10)
-    }
-    if (data.rExtra) {
-      newUser.rExtra = new BigNumber(userTemp.rExtra).plus(data.rExtra).toString(10)
-    }
-
-    if (!userTemp.lPuntos) {
-      newUser.lPuntos = "0"
-    }
-    if (!userTemp.rPuntos) {
-      newUser.rPuntos = "0"
-    }
-    if (!userTemp.lPersonas) {
-      newUser.lPersonas = "0"
-    }
-    if (!userTemp.rPersonas) {
-      newUser.rPersonas = "0"
-    }
-
-    await services.updateUser(from, newUser)
-
-    result = true
   }
 
-  return result;
+  newUser.invested = realInvested.toString(10)
+  newUser.invested_leader = leader.toString(10)
+  newUser.upTo = upTo.plus(investorNew.invested).times(porcentaje).dividedBy(100).toString(10)
+
+
+  if (data.lReclamados) {
+    newUser.lReclamados = new BigNumber(userTemp.lReclamados).plus(data.lReclamados).toString(10)
+  }
+  if (data.lExtra) {
+    newUser.lExtra = new BigNumber(userTemp.lExtra).plus(data.lExtra).toString(10)
+  }
+
+  if (data.rReclamados) {
+    newUser.rReclamados = new BigNumber(userTemp.rReclamados).plus(data.rReclamados).toString(10)
+  }
+  if (data.rExtra) {
+    newUser.rExtra = new BigNumber(userTemp.rExtra).plus(data.rExtra).toString(10)
+  }
+
+  if (!userTemp.lPuntos) {
+    newUser.lPuntos = "0"
+  }
+  if (!userTemp.rPuntos) {
+    newUser.rPuntos = "0"
+  }
+  if (!userTemp.lPersonas) {
+    newUser.lPersonas = "0"
+  }
+  if (!userTemp.rPersonas) {
+    newUser.rPersonas = "0"
+  }
+
+  await services.updateUser(from, newUser)
+
+  return true;
 
 }
 
 router.route("/total/retirar").get(async (req, res) => {
 
   /*
-  await escalarRedV2();
+   escalarRedV2();
   */
   //await consultarUsuario("0x0ee1168b2e5d2ba5e6ab4bf6ca00881981d84ab9",false,true)
 
