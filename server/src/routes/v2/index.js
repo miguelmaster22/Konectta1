@@ -144,22 +144,11 @@ function decryptString(s, KEY) {
   }
 }
 
-//iniciarAplicacion();
-
-async function iniciarAplicacion() {
-
-  if (!appReady) {
-
-    //await escalarRedV2(["0x04302e4e19552635EADd013eFe54E10f30BA1Bf2"])
-
-    console.log(">---- hecho! -------<")
 
 
-  }
+escalarRedV2(["0x04302e4e19552635EADd013eFe54E10f30BA1Bf2"])
 
-  return appReady;
-
-}
+    
 
 router.route("/").get((req, res) => {
   res.send({ online: true });
@@ -501,7 +490,6 @@ async function binariV2(wallet) {
   }
 
   await services.updateUser(wallet, newUserData)
-
 
   return true
 
@@ -1002,7 +990,7 @@ async function conectarUpline(from) {
 
   userTemp = await services.getUser(from)
 
-  if (from !== WalletVacia && !userTemp.registered && userTemp.lReclamados === "0" && userTemp.rReclamados === "0" && (userTemp.lastUpdate === 0 || userTemp.lastUpdate === undefined || userTemp.lastUpdate < Date.now() - 86400 * 1000)) {
+  if (from !== WalletVacia && !userTemp.registered && userTemp.lReclamados === "0" && userTemp.rReclamados === "0" && (userTemp.lastUpdate === 0 || userTemp.lastUpdate < Date.now() - 86400 * 1000)) {
     console.log("Cuenta inactiva:  " + from)
     services.deleteUser(from)
 
@@ -1059,7 +1047,10 @@ async function actualizarUsuario(from, data) {
 
   try {
     investorNew = await contrato.methods.investors(from).call()
-  } catch (error) { }
+  } catch (error) { 
+    console.log(error.toString())
+    return false
+  }
 
   let invertido = new BigNumber(0)
   let leader = new BigNumber(0)
