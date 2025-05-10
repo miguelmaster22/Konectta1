@@ -518,17 +518,44 @@ async function lecturaBinari(wallet) {
   await consultarUsuario(wallet, true)
   let user = await services.getUser(wallet)
 
-  let puntosL = new BigNumber(user.lPuntos).minus(user.lReclamados).plus(user.lExtra).dp(0).toString(10)
-  let puntosR = new BigNumber(user.rPuntos).minus(user.rReclamados).plus(user.rExtra).dp(0).toString(10)
-
-
-  let retBin = retirableBinario(puntosL, puntosR)
-  if (new BigNumber(retBin) < 0) {
-    retBin = "0"
-  }
-
+  let puntosL = new BigNumber(0)
+  let puntosR = new BigNumber(0)
+  let retBin = new BigNumber(0)
 
   let consulta = {
+    result: true,
+    data: {
+      retirableBinario: retBin,
+      upline: WalletVacia,
+      invested: "0",
+      invested_leader: "0",
+      upTo: "0",
+      left: {
+        dowline: WalletVacia,
+        puntos: "0",
+        usados: "0",
+        total: "0",
+        personas: "0"
+      },
+      right: {
+        dowline: WalletVacia,
+        puntos: "0",
+        usados: "0",
+        total: "0",
+        personas: "0"
+      }
+    }
+  }
+    
+  if (user !== null) {
+    puntosL = puntosL.plus(user.lPuntos).minus(user.lReclamados).plus(user.lExtra).dp(0).toString(10)
+    puntosR = puntosL.plus(user.rPuntos).minus(user.rReclamados).plus(user.rExtra).dp(0).toString(10)
+
+    retBin = retBin.plus(retirableBinario(puntosL, puntosR))
+    if (retBin.toNumber() < 0) retBin = new BigNumber(0)
+  
+      
+  consulta = {
     result: true,
     data: {
       retirableBinario: retBin,
@@ -552,6 +579,10 @@ async function lecturaBinari(wallet) {
       }
     }
   }
+
+  }
+  
+
 
   //console.log(consulta)
   return consulta;
