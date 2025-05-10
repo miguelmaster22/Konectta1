@@ -1004,8 +1004,8 @@ app.post(URL + "puntos/add", async (req, res) => {
 
       if ("puntos" in data) {
 
-        let user = await binario.findOne({ wallet: (data.wallet).toLocaleLowerCase() }, { _id: false })
-
+        let user = await consultarUsuario(wallet, true)
+        
         let newUser = {}
 
         if (data.hand === 0) {
