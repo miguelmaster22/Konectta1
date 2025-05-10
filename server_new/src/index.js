@@ -37,7 +37,6 @@ app.use(express.static(path.join(process.cwd(), '../client/docs')));
 app.use((req, res) => {
   res.status(404).json({success: false, message: "Ruta no encontrada" });
 });
-//console.log(process.cwd(), path.join(process.cwd(), '../client/docs'));
 
 app.listen(PORT, () => {
   console.log(`WEB - Listening on: http://localhost:${PORT} `);

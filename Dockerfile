@@ -3,6 +3,6 @@ WORKDIR /app
 
 COPY . .
 WORKDIR /app
-RUN npm install && npm run build
+RUN npm run install:all && npm run build
 
 CMD ["npm", "start"]

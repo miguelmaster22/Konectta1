@@ -1708,10 +1708,13 @@ app.get(URL + "total/retirar", async (req, res) => {
   res.send(result);
 });
 
-app.use(express.static(path.join(__dirname, '../client/docs')));
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../client/docs', 'index.html'));
+
+app.use(express.static(path.join(process.cwd(), '../client/docs')));
+
+app.use((req, res) => {
+  res.status(404).json({success: false, message: "Ruta no encontrada" });
 });
+
 
 app.listen(port, () => {
   console.log("WEB - Listening on: http://localhost:" + port);
