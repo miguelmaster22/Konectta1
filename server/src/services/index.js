@@ -1,5 +1,7 @@
 const database = require('../database/index.js');
 
+const WalletVacia = "0x0000000000000000000000000000000000000000"
+
 const getNonce = async() => {
     const nonce = await database.getNonce();
     if (!nonce) {
@@ -28,9 +30,14 @@ const getAllUsers = async() => {
 
 const getUser = async(wallet) => {
     wallet = wallet.toLowerCase()
+    if(wallet.length < 42 || wallet === WalletVacia){
+        return null
+    }
+    wallet
+
     const user = await database.getUserByWallet(wallet);
     if (!user) {
-        return await createNewUser({ wallet });
+        return null
     }
     return user;
 }

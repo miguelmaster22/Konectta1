@@ -15,7 +15,9 @@ const updateNonce = async(nonce) => {
 }
 
 const getAllUsers = async()=>{
-    return await User.find({}, { wallet: true, idBlock: true, lastUpdate: true, _id: false}).sort({ idBlock: -1, lastUpdate: -1 })
+    return await User.find({},{_id: false}).sort({ idBlock: -1 })
+        
+        //{ wallet: true, idBlock: true, lastUpdate: true, _id: false}).sort({ idBlock: -1, lastUpdate: -1 })
 }
 
 const createNewUser = async(user) => {
