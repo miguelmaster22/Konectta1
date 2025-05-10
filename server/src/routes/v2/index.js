@@ -369,6 +369,33 @@ function retirableBinario(puntosA, puntosB) {
 
 }
 
+router.route("/users").get(async (req, res) => {
+
+  res.status(201).json({success:true, message: "Get all users"})
+})
+
+router.route("/user").get(async (req, res) => {
+
+  let {wallet} = req.query
+
+  if (wallet) {
+    wallet = (wallet).toString().toLocaleLowerCase()
+
+    res.status(200).json({success:true, data: await consultarUsuario(wallet, true, true)})
+
+  } else {
+
+    res.status(500).json({success:false, message: "not valid wallet parameter"})
+  
+  }
+
+
+}).post(async (req, res) => {
+  res.status(201).json({success:true, message: "User succesfull created"})
+}).delete(async (req, res) => {
+  res.status(201).json({success:true, message: "User succesfull Deleted"})
+})
+
 router.route("/usuario/actualizar").get(async (req, res) => {
 
   let result = {
@@ -549,7 +576,7 @@ async function lecturaBinari(wallet) {
     
   if (user !== null) {
     puntosL = puntosL.plus(user.lPuntos).minus(user.lReclamados).plus(user.lExtra).dp(0).toString(10)
-    puntosR = puntosL.plus(user.rPuntos).minus(user.rReclamados).plus(user.rExtra).dp(0).toString(10)
+    puntosR = puntosR.plus(user.rPuntos).minus(user.rReclamados).plus(user.rExtra).dp(0).toString(10)
 
     retBin = retBin.plus(retirableBinario(puntosL, puntosR))
     if (retBin.toNumber() < 0) retBin = new BigNumber(0)
