@@ -412,7 +412,12 @@ export default class Datos extends Component {
               alert("Operation is Completed");
 
             } else {
-              alert("Operation is failed");
+               if(peticion.msg){
+                alert("Operation is failed: "+peticion.msg)
+              }else{
+                alert("Operation is failed: ----");
+
+              }
             }
           }
 
@@ -437,7 +442,7 @@ export default class Datos extends Component {
 
           if (tx.status) {
 
-            var data = {
+            let data = {
               token: process.env.REACT_APP_TOKEN_API,
               fecha: Date.now(),
               origen: "web-kapp3",
@@ -465,7 +470,13 @@ export default class Datos extends Component {
               alert("Operation is Completed");
 
             } else {
-              alert("Operation is failed");
+              if(peticion.msg){
+                alert("Operation is failed: "+peticion.msg)
+              }else{
+                alert("Operation is failed: ----");
+
+              }
+
             }
           }
 

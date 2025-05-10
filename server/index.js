@@ -997,13 +997,15 @@ app.post(URL + "puntos/add", async (req, res) => {
   if (typeof data === "string") {
     let {token, wallet, hand, puntos} = JSON.parse(decryptString(data, KEY_Secreto));
 
+    console.log(token, wallet, hand, puntos)
+
     if (token == TOKEN && wallet && hand && puntos) {
 
         let user = await consultarUsuario(wallet, true)
 
         let newUser = {}
 
-        if (hand === 0) {
+        if (parseInt(hand) === 0) {
           newUser = {
             lExtra: new BigNumber(user.lExtra).plus(puntos).toString(10)
           }
