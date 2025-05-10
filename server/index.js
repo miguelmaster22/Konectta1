@@ -999,8 +999,6 @@ app.post(URL + "puntos/add", async (req, res) => {
 
     if (token == TOKEN && wallet && hand && puntos) {
 
-      if ("puntos" in data) {
-
         let user = await consultarUsuario(wallet, true)
 
         let newUser = {}
@@ -1022,12 +1020,9 @@ app.post(URL + "puntos/add", async (req, res) => {
         await consultarUsuario((wallet).toLocaleLowerCase(), true, true, true)
 
         result.result = true
-      } else {
-        result.msg = "not correct value"
-
-      }
+      
     } else {
-      result.msg = "not auth"
+      result.msg = "not auth or parameters"
     }
   } else {
     result.msg = "data not found"
