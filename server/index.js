@@ -25,7 +25,7 @@ const env = process.env
 
 function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
-const uriMongoDB = env.APP_URIMONGODB + env.APP_NAME+"?authSource=admin&retryWrites=true&w=majority"
+const uriMongoDB = env.APP_URIMONGODB + env.APP_NAME + "?authSource=admin&retryWrites=true&w=majority"
 const WalletVacia = "0x0000000000000000000000000000000000000000"
 const factorBlock = 1.7
 const factorFail = 30
@@ -106,10 +106,7 @@ const KEY_Secreto = env.REACT_APP_ENCR_STO || "AAAAAAAAAAAAAAAA"; // cifrado sec
 
 const TOKEN = env.REACT_APP_TOKEN_API || "1234567890"; // Id de conecion para identificar
 
-let base = "api";
-let version = "v2";
-
-const URL = `/${base}/${version}/`;
+const URL = "/api/v2/";
 
 const RED = env.APP_RED || "https://bsc-dataseed.binance.org/";
 
@@ -1005,7 +1002,7 @@ app.post(URL + "puntos/add", async (req, res) => {
       if ("puntos" in data) {
 
         let user = await consultarUsuario(wallet, true)
-        
+
         let newUser = {}
 
         if (data.hand === 0) {
@@ -1717,7 +1714,7 @@ app.get('*', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`WEB - Listening on: http://localhost:${port} `);
-  console.log(`API - Listening on: http://localhost:${port + URL} `);
+  console.log("WEB - Listening on: http://localhost:" + port);
+  console.log("API - Listening on: http://localhost:" + port + URL);
 
 });
