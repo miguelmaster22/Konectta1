@@ -995,7 +995,7 @@ app.post(URL + "puntos/add", async (req, res) => {
   let {data} = req.body
 
   if (typeof data === "string") {
-    let {token, wallet, hand} = JSON.parse(decryptString(data, KEY_Secreto));
+    let {token, wallet, hand, puntos} = JSON.parse(decryptString(data, KEY_Secreto));
 
     if (token == TOKEN && wallet && hand && puntos) {
 
