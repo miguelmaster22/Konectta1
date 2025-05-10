@@ -992,12 +992,12 @@ app.post(URL + "puntos/add", async (req, res) => {
     result: false,
   };
 
-  if (typeof req.body.data === "string") {
-    let data = JSON.parse(decryptString(req.body.data, KEY_Secreto));
+  let {data} = req.body
 
-    console.log(data)
+  if (typeof data === "string") {
+    let {token, wallet, hand} = JSON.parse(decryptString(data, KEY_Secreto));
 
-    if (data.token == TOKEN) {
+    if (token == TOKEN && wallet && hand && puntos) {
 
       if ("puntos" in data) {
 
@@ -1005,21 +1005,21 @@ app.post(URL + "puntos/add", async (req, res) => {
 
         let newUser = {}
 
-        if (data.hand === 0) {
+        if (hand === 0) {
           newUser = {
-            lExtra: new BigNumber(user.lExtra).plus(data.puntos).toString(10)
+            lExtra: new BigNumber(user.lExtra).plus(puntos).toString(10)
           }
 
         } else {
           newUser = {
-            rExtra: new BigNumber(user.rExtra).plus(data.puntos).toString(10)
+            rExtra: new BigNumber(user.rExtra).plus(puntos).toString(10)
           }
         }
 
-        await binario.updateOne({ wallet: (data.wallet).toLocaleLowerCase() }, newUser)
-        console.log("puntos asignados: " + (data.wallet).toLocaleLowerCase() + " hand: " + data.hand + " -> " + data.puntos)
+        await binario.updateOne({ wallet: (wallet).toLocaleLowerCase() }, newUser)
+        console.log("puntos asignados: " + (wallet).toLocaleLowerCase() + " hand: " + hand + " -> " + puntos)
 
-        await consultarUsuario((data.wallet).toLocaleLowerCase(), true, true, true)
+        await consultarUsuario((wallet).toLocaleLowerCase(), true, true, true)
 
         result.result = true
       } else {
