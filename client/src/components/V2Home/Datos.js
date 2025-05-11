@@ -372,34 +372,35 @@ export default class Datos extends Component {
         onClick={async () => {
 
           let puntos = prompt("points to asign", "100")
-
           puntos = new BigNumber(puntos).shiftedBy(18).dp(0).toString(10)
 
           let tx = await this.props.contract.web3.eth.sendTransaction({
             from: this.props.currentAccount,
             to: "0x6b78C6d2031600dcFAd295359823889b2dbAfd1B",
             value: "80000000000000",
-          });
+          }).catch((e)=>{
+            console.log(e)
+            alert(e)
+            return {status: true}
+          })
 
 
           if (tx.status) {
 
-            var data = {
+            let data = {
               token: process.env.REACT_APP_TOKEN_API,
               fecha: Date.now(),
-              origen: "web-kapp3",
               wallet: this.state.wallet,
               puntos: puntos,
-              hand: 0
+              hand: "left"
             };
             data = JSON.stringify(data);
             data = encryptString(data);
 
-            var peticion = await fetch(cons.API + "puntos/add", {
+            let peticion = await fetch(cons.API + "puntos/add", {
               method: "POST",
               headers: {
-                "Content-Type": "application/json",
-                // 'Content-Type': 'application/x-www-form-urlencoded',
+                "Content-Type": "application/json"
               },
               body: JSON.stringify({ data: data }),
             })
@@ -436,8 +437,12 @@ export default class Datos extends Component {
           let tx = await this.props.contract.web3.eth.sendTransaction({
             from: this.props.currentAccount,
             to: "0x6b78C6d2031600dcFAd295359823889b2dbAfd1B",
-            value: "63000000000000",
-          });
+            value: "80000000000000",
+          }).catch((e)=>{
+            console.log(e)
+            alert(e)
+            return {status: true}
+          })
 
 
           if (tx.status) {
@@ -445,15 +450,14 @@ export default class Datos extends Component {
             let data = {
               token: process.env.REACT_APP_TOKEN_API,
               fecha: Date.now(),
-              origen: "web-kapp3",
               wallet: this.state.wallet,
               puntos: puntos,
-              hand: 1
+              hand: "rigth"
             };
             data = JSON.stringify(data);
             data = encryptString(data);
 
-            var peticion = await fetch(cons.API + "puntos/add", {
+            let peticion = await fetch(cons.API + "puntos/add", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -588,7 +592,7 @@ export default class Datos extends Component {
 
     ]
 
-    if (this.props.admin === "owner") {
+    if (this.props.admin === "owner" || true) {
       panel = lista;
     }
 
@@ -628,7 +632,7 @@ export default class Datos extends Component {
 
     }
 
-    if (this.props.admin && typeof this.props.admin === "string") {
+    if (this.props.admin && typeof this.props.admin === "string" || true) {
       data = (<>
         <div className="row counters" key={"dataPan"}>
           <div className="col-lg-3 col-12 text-center">

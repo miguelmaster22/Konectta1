@@ -13,7 +13,7 @@ if (fs.existsSync(localEnvPath)) {
 }
 
 const express = require("express");
-let cors = require("cors");
+const cors = require("cors")
 const { Web3 } = require("web3");
 const Cryptr = require("cryptr");
 const bodyParser = require("body-parser");
@@ -85,18 +85,15 @@ const Binario = new Schema({
 const binario = mongoose.model('binarios-v2', Binario);
 
 const app = express();
-//app.use(cors())
-app.use(async (req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  next();
+const allowedOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(",") : [];
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+}))
 
-});
-
-
-app.use(bodyParser.json());
+app.use(express.json());
 
 const port = env.PORT || "5000";
 
@@ -177,7 +174,7 @@ web3_3.eth.getBalance(WALLET_API).then(async (r) => {
 })
 
 async function nonce() {
-  var activo = await web3_3.eth.getTransactionCount(WALLET_API, "pending");
+  var activo = await web3_3.eth.getTransactionCount(WALLET_API, "pending").catch(console.log)
   console.log(new BigNumber(activo).toString(10));
 
   gasPrice = new BigNumber(await web3_3.eth.getGasPrice())
@@ -338,7 +335,8 @@ async function hacerTakeProfit(wallet) {
 
   let gas = await contrato.methods
     .corteBinarioDo(wallet, retBinario, pRango.toString(10), 0)
-    .estimateGas({ from: WALLET_API }); // gas: 1000000});
+    .estimateGas({ from: WALLET_API })
+    .catch((e) => { return 1000000 }) // gas: 1000000});
 
   await contrato.methods
     .corteBinarioDo(wallet, retBinario, pRango.toString(10), 0)
@@ -992,37 +990,32 @@ app.post(URL + "puntos/add", async (req, res) => {
     result: false,
   };
 
-  let {data} = req.body
+  let { data } = req.body
 
   if (typeof data === "string") {
-    let {token, wallet, hand, puntos} = JSON.parse(decryptString(data, KEY_Secreto));
+    let { token, wallet, hand, puntos }  = JSON.parse(decryptString(data, KEY_Secreto));
 
-    console.log(token, wallet, hand, puntos)
+    if (token == TOKEN && wallet && puntos) {
 
-    if (token == TOKEN && wallet && hand && puntos) {
+      wallet = wallet.toLocaleLowerCase()
 
-        let user = await consultarUsuario(wallet, true)
+      let user = await consultarUsuario(wallet, true)
 
-        let newUser = {}
+      let newUser = {}
 
-        if (parseInt(hand) === 0) {
-          newUser = {
-            lExtra: new BigNumber(user.lExtra).plus(puntos).toString(10)
-          }
+      if (hand === "left") {
+        newUser.lExtra = new BigNumber(user.lExtra).plus(puntos).toString(10)
+      } else {
+        newUser.rExtra = new BigNumber(user.rExtra).plus(puntos).toString(10)
+      }
 
-        } else {
-          newUser = {
-            rExtra: new BigNumber(user.rExtra).plus(puntos).toString(10)
-          }
-        }
+      await binario.updateOne({ wallet }, newUser)
+      console.log("puntos asignados: " + wallet + " hand: " + hand + " -> " + puntos)
 
-        await binario.updateOne({ wallet: (wallet).toLocaleLowerCase() }, newUser)
-        console.log("puntos asignados: " + (wallet).toLocaleLowerCase() + " hand: " + hand + " -> " + puntos)
+      await consultarUsuario(wallet, true, true, true)
 
-        await consultarUsuario((wallet).toLocaleLowerCase(), true, true, true)
+      result.result = true
 
-        result.result = true
-      
     } else {
       result.msg = "not auth or parameters"
     }
@@ -1388,7 +1381,7 @@ async function crearUsuario(from) {
 
   if (investorNew.registered) {
 
-    let depositos = await contrato.methods.verListaDepositos(from).call();
+    let depositos = await contrato.methods.verListaDepositos(from).call().catch(console.log)
 
     for (let index = 0; index < depositos.length; index++) {
       let dep = new BigNumber(depositos[index].valor)
@@ -1448,9 +1441,9 @@ async function crearUsuario(from) {
     if (investorNew.registered) {
       newUser.registered = true
 
-      newUser.idBlock = parseInt(await contrato.methods.addressToId(from).call())
+      newUser.idBlock = parseInt(await contrato.methods.addressToId(from).call().catch(console.log()))
 
-      let consulta = await contrato.methods.upline(from).call();
+      let consulta = await contrato.methods.upline(from).call().catch(console.log)
       newUser.referer = (consulta._referer).toLowerCase();
     }
 
@@ -1566,14 +1559,14 @@ async function actualizarUsuario(from, data) {
     let invertido = new BigNumber(0)
     let leader = new BigNumber(0)
     let upTo = new BigNumber(0)
-    let porcentaje = await contrato.methods.porcent().call()
+    let porcentaje = await contrato.methods.porcent().call().catch(console.log)
 
 
     if (investorNew.registered) {
-      newUser.idBlock = parseInt(await contrato.methods.addressToId(from).call())
+      newUser.idBlock = parseInt(await contrato.methods.addressToId(from).call().catch(console.log))
       newUser.registered = true;
 
-      let consulta = await contrato.methods.upline(from).call()
+      let consulta = await contrato.methods.upline(from).call().catch(console.log)
 
       newUser.hand = parseInt(consulta._lado);
       if (newUser.hand <= 1 && userTemp.referer === WalletVacia) {
@@ -1582,7 +1575,7 @@ async function actualizarUsuario(from, data) {
 
       }
 
-      let depositos = await contrato.methods.verListaDepositos(from).call();
+      let depositos = await contrato.methods.verListaDepositos(from).call().catch(console.log)
 
       for (let index = 0; index < depositos.length; index++) {
         let dep = new BigNumber(depositos[index].valor)
@@ -1603,7 +1596,7 @@ async function actualizarUsuario(from, data) {
         realInvested = new BigNumber(investorNew.invested)
       }
 
-      newUser.retirableA = new BigNumber(await contrato.methods.retirableA(from).call()).toNumber()
+      newUser.retirableA = new BigNumber(await contrato.methods.retirableA(from).call().catch(console.log)).toNumber()
 
 
     } else {
@@ -1709,7 +1702,7 @@ app.get(URL + "total/retirar", async (req, res) => {
 app.use(express.static(path.join(process.cwd(), '../client/docs')));
 
 app.use((req, res) => {
-  res.status(404).json({success: false, message: "Ruta no encontrada" });
+  res.status(404).json({ success: false, message: "Ruta no encontrada" });
 });
 
 
