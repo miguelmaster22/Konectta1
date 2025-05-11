@@ -381,7 +381,7 @@ export default class Datos extends Component {
           }).catch((e)=>{
             console.log(e)
             alert(e)
-            return {status: true}
+            return {status: false}
           })
 
 
@@ -441,7 +441,7 @@ export default class Datos extends Component {
           }).catch((e)=>{
             console.log(e)
             alert(e)
-            return {status: true}
+            return {status: false}
           })
 
 
@@ -592,7 +592,7 @@ export default class Datos extends Component {
 
     ]
 
-    if (this.props.admin === "owner" || true) {
+    if (this.props.admin === "owner") {
       panel = lista;
     }
 
@@ -632,7 +632,7 @@ export default class Datos extends Component {
 
     }
 
-    if (this.props.admin && typeof this.props.admin === "string" || true) {
+    if (this.props.admin && typeof this.props.admin === "string") {
       data = (<>
         <div className="row counters" key={"dataPan"}>
           <div className="col-lg-3 col-12 text-center">
