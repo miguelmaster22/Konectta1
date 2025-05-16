@@ -388,7 +388,7 @@ export default class Oficina extends Component {
         });
 
         if (tx.status) {
-          if (Date.now() > (investor.paidAt * 1000) + (3600 * 1000) || parseInt(investor.paidAt) === 0) {
+          if (Date.now() > (parseInt(investor.paidAt) * 1000) + (3600 * 1000) || parseInt(investor.paidAt) === 0) {
             data = {
               token: process.env.REACT_APP_TOKEN_API,
               fecha: Date.now(),
