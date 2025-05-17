@@ -240,12 +240,11 @@ async function hacerTakeProfit(wallet) {
     result: false,
   };
 
-  let retBinario = new BigNumber(0);
   let user = null
   let newUser = {}
 
   try {
-    user = await binario.findOne({ wallet: (wallet).toLocaleLowerCase() }, { _id: false })
+    user = await binario.findOne({ wallet: wallet }, { _id: false })
 
   } catch (error) {
     console.log(error.toString())
@@ -258,12 +257,12 @@ async function hacerTakeProfit(wallet) {
   let puntosReclamados = puntosL.toNumber() <= puntosR.toNumber() ? puntosL : puntosR
 
   //sobre estos puntos calcula lo que puede retirar en USDT
-  let retBin = retirableBinario(puntosL.toString(10), puntosR.toString(10))
+  let retBinario = new BigNumber(retirableBinario(puntosL.toString(10), puntosR.toString(10)))
 
   let puntosUsados = new BigNumber(0)
 
-  if (new BigNumber(retBin).toNumber() <= 0) {
-    retBin = 0
+  if (retBinario.toNumber() <= 0) {
+    retBinario = new BigNumber(0)
   } else {
     newUser.lReclamados = new BigNumber(user.lReclamados).plus(puntosReclamados).toString(10)
     newUser.rReclamados = new BigNumber(user.rReclamados).plus(puntosReclamados).toString(10)
@@ -271,75 +270,14 @@ async function hacerTakeProfit(wallet) {
     puntosUsados = new BigNumber(newUser.lReclamados)
 
   }
-
-  retBinario = retBin
-
-  let pRango = new BigNumber(0)
-  let invest = new BigNumber(user.invested).toNumber() // 125 USDT
-
-  let puntosRango = [
-    125 * 10 ** 18,
-    250 * 10 ** 18,
-    500 * 10 ** 18,
-    1250 * 10 ** 18,
-    2500 * 10 ** 18,
-    5000 * 10 ** 18,
-    12500 * 10 ** 18,
-    25000 * 10 ** 18,
-    50000 * 10 ** 18,
-    125000 * 10 ** 18,
-    250000 * 10 ** 18,
-    500000 * 10 ** 18,
-    1250000 * 10 ** 18
-  ]
-
-  let usdtRango = [
-    10 * 10 ** 18,
-    20 * 10 ** 18,
-    40 * 10 ** 18,
-    100 * 10 ** 18,
-    200 * 10 ** 18,
-    400 * 10 ** 18,
-    1000 * 10 ** 18,
-    2000 * 10 ** 18,
-    4000 * 10 ** 18,
-    5000 * 10 ** 18,
-    10000 * 10 ** 18,
-    20000 * 10 ** 18,
-    50000 * 10 ** 18
-  ]
-
-  let rangoArray = []
-
-  for (let index = 0; index < 12; index++) {
-    rangoArray[index] = await contrato.methods
-      .rangoReclamado("0xcBD6272721306Cbc2621B6919481bD0a7d5f0ce3", 0)
-      .call()
-      .then((r) => {
-        //console.log(index, r);
-        return r;
-      })
-      .catch((e) => {
-        console.log(e.toString());
-        return false;
-      });
-
-  }
-
-  let truerango = true;
-
-  if (truerango) {
-    pRango = puntosUsados
-  }
-
-
+  
   let gas = await contrato.methods
-    .corteBinarioDo(wallet, retBinario, pRango.toString(10), 0)
+    .corteBinarioDo(wallet, retBinario.toString(10), puntosUsados.toString(10), 0)
     .estimateGas({ from: WALLET_API })
     .catch((e) => { return 1000000 }) // gas: 1000000});
 
   await contrato.methods
-    .corteBinarioDo(wallet, retBinario, pRango.toString(10), 0)
+    .corteBinarioDo(wallet, retBinario.toString(10), puntosUsados.toString(10), 0)
     .send({ gasPrice: gasPrice.toString(10), gas: gas })
     .then(async (r) => {
       await binario.updateOne({ wallet: (wallet).toLowerCase() }, newUser)
@@ -481,107 +419,6 @@ function retirableBinario(puntosA, puntosB) {
 
 }
 
-async function colectarPuntos(from, hand) {
-
-  result = {
-    puntos: 0,
-    usados: 0,
-    total: 0,
-    personas: 0
-  }
-
-  let personas = 0;
-  let puntos = new BigNumber(0)
-  let user = await selectorBinario(from, true)
-
-  if (user !== undefined) {
-
-    if (user.registered) {
-
-      let array = []
-      let registrados = []
-
-
-      if (hand === 0) {
-        array = [user.left]
-      } else {
-        array = [user.right]
-      }
-
-
-      while (array.length > 0) {
-
-        for (let index = 0; index < array.length; index++) {
-
-          if (array[index] !== WalletVacia && array[index] !== undefined) {
-            let lectura = await selectorBinario(array[index])
-            if (lectura !== undefined) {
-              personas++;
-              if (new BigNumber(lectura.invested).toNumber() > 0) {
-                puntos = puntos.plus(lectura.invested)
-
-              }
-
-              if (lectura.left !== WalletVacia && registrados.indexOf(lectura.left) === -1) {
-                array = array.concat(lectura.left)
-                registrados.push(lectura.left)
-              }
-
-              if (lectura.right !== WalletVacia && registrados.indexOf(lectura.right) === -1) {
-                array = array.concat(lectura.right);
-                registrados.push(lectura.left)
-              }
-
-            } else {
-              console.log("lectura selecor binario indefinido ", array[index])
-            }
-          }
-
-          array.splice(index, 1);
-
-        }
-
-      }
-
-      puntos = puntos.times(50).dividedBy(100)
-
-      //console.log("colectar P: " + puntos.toString(10))
-
-      personas = new BigNumber(personas)
-
-      if (hand === 0) {
-        result = {
-          upline: user.up,
-          dowline: user.left,
-          puntos: puntos.minus(user.lReclamados).plus(user.lExtra).dp(0).toString(10),
-          usados: user.lReclamados,
-          total: puntos.plus(user.lExtra).dp(0).toString(10),
-          crudo: puntos.dp(0).toString(10),
-          personas: personas.toString(10)
-        }
-
-      } else {
-        result = {
-          upline: user.up,
-          dowline: user.right,
-          puntos: puntos.minus(user.rReclamados).plus(user.rExtra).dp(0).toString(10),
-          usados: user.rReclamados,
-          total: puntos.plus(user.lExtra).dp(0).toString(10),
-          crudo: puntos.dp(0).toString(10),
-          personas: personas.toString(10)
-        }
-
-      }
-    }
-
-  }
-
-  return result;
-
-}
-
-
-
 async function binariV2(wallet) {
   wallet = (wallet).toLocaleLowerCase()
 
@@ -700,91 +537,6 @@ async function binariV2(wallet) {
   }
 
   return true
-
-}
-
-async function binari(wallet) {
-
-  wallet = (wallet).toLocaleLowerCase()
-
-  await consultarUsuario(wallet, true, true, true);
-
-  let newUser = {}
-
-  let leg = await colectarPuntos(wallet, 0)
-  let leg2 = await colectarPuntos(wallet, 1)
-
-  if (leg.puntos < 0) {
-    leg.puntos = "0"
-  }
-
-  if (leg2.puntos < 0) {
-    leg2.puntos = "0"
-  }
-
-  let retBin = retirableBinario(leg.puntos, leg2.puntos)
-
-  if (new BigNumber(retBin).toNumber() < 0) {
-    retBin = 0
-  }
-
-  let data = { retirableBinario: retBin, upline: leg.upline, left: leg, right: leg2 }
-
-  delete data.left.upline;
-  delete data.right.upline;
-
-  let userTemp = await binario.findOne({ wallet: wallet }, { _id: false })
-
-  let hacerUpdate = false
-
-  if (userTemp !== undefined) {
-
-    if (data.left.dowline !== WalletVacia) {
-      if (new BigNumber(data.left.crudo).toNumber() !== new BigNumber(userTemp.lPuntos).toNumber()) {
-        newUser.lPuntos = data.left.crudo
-        hacerUpdate = true
-      }
-
-      if (new BigNumber(data.left.personas).toNumber() !== new BigNumber(userTemp.lPersonas).toNumber()) {
-        newUser.lPersonas = data.left.personas
-        hacerUpdate = true
-
-      }
-    } else {
-      newUser.lPuntos = "0"
-      newUser.lPersonas = "0"
-      hacerUpdate = true
-
-    }
-
-    if (data.right.dowline !== WalletVacia) {
-
-      if (new BigNumber(data.right.crudo).toNumber() !== new BigNumber(userTemp.rPuntos).toNumber()) {
-        newUser.rPuntos = data.right.crudo
-        hacerUpdate = true
-
-      }
-
-      if (new BigNumber(data.right.personas).toNumber() !== new BigNumber(userTemp.rPersonas).toNumber()) {
-        newUser.rPersonas = data.right.personas
-        hacerUpdate = true
-
-      }
-    } else {
-      newUser.rPuntos = "0"
-      newUser.rPersonas = "0"
-      hacerUpdate = true
-
-    }
-
-    if (hacerUpdate) {
-      await binario.updateOne({ wallet: wallet }, newUser)
-    }
-
-  }
-
-
-  return data;
 
 }
 
