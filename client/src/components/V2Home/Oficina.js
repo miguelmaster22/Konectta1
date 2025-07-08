@@ -366,7 +366,7 @@ export default class Oficina extends Component {
       data = encryptString(JSON.stringify(data));
 
       //console.log(data);
-      var peticion = await fetch(cons.API + "calculate/retiro", {
+      let peticion = await fetch(cons.API + "calculate/retiro", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -379,12 +379,17 @@ export default class Oficina extends Component {
           return { result: false };
         });
 
+        console.log(peticion);
+
       if (peticion.result && !peticion.error) {
-        console.log();
         let tx = await this.props.contract.web3.eth.sendTransaction({
           from: this.props.currentAccount,
           to: process.env.REACT_APP_WALLET_API,
           value: peticion.gas.toString(10),
+        }).catch((e) => {
+          console.log(e);
+          alert("Error: " + e.toString());
+          return { status: false };
         });
 
         if (tx.status) {
