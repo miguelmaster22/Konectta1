@@ -129,14 +129,17 @@ export default class CrowdFunding extends Component {
       valorPlan = inversors.plan / 10 ** 8;
     }
 
-    var partner = cons.WS;
-
-    var hand = "Left ";
+    let partner = cons.WS;
+    let hand = "Left ";
 
     if (inversors.registered) {
       partner = await this.props.contract.binaryProxy.methods
         .padre(this.props.currentAccount)
-        .call({ from: this.props.currentAccount });
+        .call({ from: this.props.currentAccount })
+        .catch((e)=>{
+          console.error("Error fetching partner:", e);
+          partner = "0x0000000000000000000000000000000000000000"
+        })
 
 
       if (partner !== "0x0000000000000000000000000000000000000000") {

@@ -79,7 +79,7 @@ class App extends Component {
           )
 
           let isAdmin = false;
-          let cuenta = accounts[0] //"0x2198b0D4f54925DCCA173a84708BA284Ac85Cc37"//
+          let cuenta = accounts[0]
           let level = await binaryProxy.methods.leveling(cuenta).call({ from: cuenta })
 
           if (level >= 1) {
@@ -101,8 +101,8 @@ class App extends Component {
             }
           }
 
-          var verWallet = accounts[0];
-          var loc = document.location.href;
+          let verWallet = accounts[0];
+          let loc = document.location.href;
 
 
           if (loc.indexOf('?') > 0 && loc.indexOf('&wallet=') > 0) {
@@ -156,6 +156,8 @@ class App extends Component {
         .catch((error) => {
           console.error(error)
           this.setState({
+            currentAccount: "0x0000000000000000000000000000000000000000",
+            metamask: true,
             conectado: false,
             admin: false,
             contract: {
@@ -170,7 +172,8 @@ class App extends Component {
       console.log("no se ha detectado Metamask")
 
       this.setState({
-
+        currentAccount: "0x0000000000000000000000000000000000000000",
+        metamask: false,
         metamask: false,
         conectado: false,
         admin: false,
