@@ -110,7 +110,7 @@ export default class Oficina extends Component {
       this.Investors();
       this.rango();
       this.Link();
-    }, 60 * 1000);
+    }, 10 * 1000);
   }
 
   async Link() {

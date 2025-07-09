@@ -43,11 +43,11 @@ export default class Datos extends Component {
 
     setTimeout(() => {
       this.totalInvestors();
-    }, 3 * 1000);
+    }, 6 * 1000);
 
     setInterval(() => {
       this.totalInvestors();
-    }, 30 * 1000);
+    }, 25 * 1000);
   }
 
   handleChangeWALLET(event) {

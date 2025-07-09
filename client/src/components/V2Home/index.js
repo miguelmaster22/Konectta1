@@ -28,11 +28,11 @@ export default class Home extends Component {
     setTimeout(() => {
       this.Investor()
 
-    }, 3 * 1000)
+    }, 4 * 1000)
 
     intervalo2 = setInterval(() => {
       this.Investor()
-    }, 30 * 1000)
+    }, 15 * 1000)
   }
 
   componentWillUnmount() {

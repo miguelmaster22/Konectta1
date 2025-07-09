@@ -17,12 +17,12 @@ export default class Depositos extends Component {
     setTimeout(() => {
       this.setState({ currentAccount: this.props.currentAccount });
       this.Investors();
-    }, 3 * 1000);
+    }, 5 * 1000);
 
     setInterval(() => {
       this.setState({ currentAccount: this.props.currentAccount });
       this.Investors();
-    }, 30 * 1000);
+    }, 20 * 1000);
   }
 
   async Investors() {

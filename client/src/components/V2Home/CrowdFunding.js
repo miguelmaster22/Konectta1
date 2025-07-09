@@ -67,7 +67,7 @@ export default class CrowdFunding extends Component {
   async componentDidMount() {
     setTimeout(() => {
       this.estado();
-    }, 3 * 1000);
+    }, 7 * 1000);
 
     setInterval(() => {
       this.estado();
