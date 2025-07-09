@@ -662,6 +662,7 @@ export default class Oficina extends Component {
   render() {
     let { available, invested, link, link2, rango, retirableA, takeProfit } = this.state;
 
+    const { currentAccount, contract } = this.props;
 
     let takePro = (<button className="btn btn-info btn-lg d-block text-center mx-auto mt-1" disabled>
       Take Profit
@@ -715,7 +716,7 @@ export default class Oficina extends Component {
                   window.alert("Please contact the capital withdrawals department for error: S4-LD-0");
                 } else {
 
-                  await this.props.contract.binaryProxy.methods
+                  await contract.binaryProxy.methods
                     .withdraw()
                     .send({ from: currentAccount })
                     .then(() => {
