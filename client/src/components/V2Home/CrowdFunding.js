@@ -11,7 +11,6 @@ export default class CrowdFunding extends Component {
       min: 100,
       deposito: "Loading...",
       balance: "Loading...",
-      currentAccount: this.props.currentAccount,
       porcentaje: "Loading...",
       dias: "Loading...",
       partner: "Loading...",
@@ -68,7 +67,6 @@ export default class CrowdFunding extends Component {
   async componentDidMount() {
     setTimeout(() => {
       this.estado();
-      //this.migrate(this.props.currentAccount);
     }, 3 * 1000);
 
     setInterval(() => {
@@ -77,18 +75,22 @@ export default class CrowdFunding extends Component {
   }
 
   async estado() {
-    let accountAddress = this.props.currentAccount;
-    let inversors = await this.props.contract.binaryProxy.methods
-      .investors(this.props.currentAccount)
-      .call({ from: this.props.currentAccount });
 
-    var nameToken1 = await this.props.contract.contractToken.methods
+    const { currentAccount, contract } = this.props;
+
+    console.log("Estado de CrowdFunding", currentAccount);
+
+    let inversors = await contract.binaryProxy.methods
+      .investors(currentAccount)
+      .call({ from: currentAccount });
+
+    var nameToken1 = await contract.contractToken.methods
       .symbol()
-      .call({ from: this.props.currentAccount });
+      .call({ from: currentAccount });
 
-    var aprovado = await this.props.contract.contractToken.methods
-      .allowance(accountAddress, this.props.contract.binaryProxy._address)
-      .call({ from: this.props.currentAccount });
+    var aprovado = await contract.contractToken.methods
+      .allowance(currentAccount, contract.binaryProxy._address)
+      .call({ from: currentAccount });
 
     if (aprovado > 0) {
       if (!inversors.registered) {
@@ -102,22 +104,22 @@ export default class CrowdFunding extends Component {
 
     inversors.inicio = 1000;
 
-    let tiempo = await this.props.contract.binaryProxy.methods
+    let tiempo = await contract.binaryProxy.methods
       .tiempo()
-      .call({ from: this.props.currentAccount });
+      .call({ from: currentAccount });
 
     tiempo = parseInt(tiempo) * 1000;
 
     var porcentiempo = ((Date.now() - inversors.inicio) * 100) / tiempo;
 
-    var decimales = await this.props.contract.contractToken.methods
+    var decimales = await contract.contractToken.methods
       .decimals()
-      .call({ from: this.props.currentAccount });
+      .call({ from: currentAccount });
     decimales = parseInt(decimales);
 
-    var balance = await this.props.contract.contractToken.methods
-      .balanceOf(this.props.currentAccount)
-      .call({ from: this.props.currentAccount });
+    var balance = await contract.contractToken.methods
+      .balanceOf(currentAccount)
+      .call({ from: currentAccount });
 
     balance = new BigNumber(parseInt(balance)).shiftedBy(-decimales).toString(10);
 
@@ -133,9 +135,9 @@ export default class CrowdFunding extends Component {
     let hand = "Left ";
 
     if (inversors.registered) {
-      partner = await this.props.contract.binaryProxy.methods
-        .padre(this.props.currentAccount)
-        .call({ from: this.props.currentAccount })
+      partner = await contract.binaryProxy.methods
+        .padre(currentAccount)
+        .call({ from: currentAccount })
         .catch((e)=>{
           console.error("Error fetching partner:", e);
           partner = "0x0000000000000000000000000000000000000000"
@@ -144,7 +146,7 @@ export default class CrowdFunding extends Component {
 
       if (partner !== "0x0000000000000000000000000000000000000000") {
 
-        let partner_b = await this.props.contract.binaryProxy.methods.upline(this.props.currentAccount).call()
+        let partner_b = await contract.binaryProxy.methods.upline(currentAccount).call()
 
         let lado = parseInt(partner_b._lado);
 
@@ -194,13 +196,13 @@ export default class CrowdFunding extends Component {
 
           //console.log(tmp[0]);
 
-          var wallet = await this.props.contract.binaryProxy.methods
+          var wallet = await contract.binaryProxy.methods
             .idToAddress(tmp[0])
-            .call({ from: this.props.currentAccount });
+            .call({ from: currentAccount });
 
-          inversors = await this.props.contract.binaryProxy.methods
+          inversors = await contract.binaryProxy.methods
             .investors(wallet)
-            .call({ from: this.props.currentAccount });
+            .call({ from: currentAccount });
           //console.log(wallet);
           if (inversors.registered) {
             partner = hand + " of " + wallet;
@@ -211,38 +213,38 @@ export default class CrowdFunding extends Component {
 
 
 
-    let dias = await this.props.contract.binaryProxy.methods
+    let dias = await contract.binaryProxy.methods
       .tiempo()
-      .call({ from: this.props.currentAccount });
+      .call({ from: currentAccount });
 
     dias = parseInt(dias);
 
-    let porcentaje = await this.props.contract.binaryProxy.methods
+    let porcentaje = await contract.binaryProxy.methods
       .porcent()
-      .call({ from: this.props.currentAccount });
+      .call({ from: currentAccount });
 
     porcentaje = parseInt(porcentaje);
 
-    let decimals = await this.props.contract.contractToken.methods
+    let decimals = await contract.contractToken.methods
       .decimals()
-      .call({ from: this.props.currentAccount });
+      .call({ from: currentAccount });
     decimals = parseInt(decimals);
 
-    let balanceUSDT = await this.props.contract.contractToken.methods
-      .balanceOf(this.props.currentAccount)
-      .call({ from: this.props.currentAccount });
+    let balanceUSDT = await contract.contractToken.methods
+      .balanceOf(currentAccount)
+      .call({ from: currentAccount });
 
     balanceUSDT = parseInt(balanceUSDT) / 10 ** decimals;
 
-    const investorNew = await this.props.contract.binaryProxy.methods
-      .investors(this.props.currentAccount)
+    const investorNew = await contract.binaryProxy.methods
+      .investors(currentAccount)
       .call();
 
     this.setState({
       deposito: aprovado,
       balance: valorPlan,
       decimales: decimales,
-      accountAddress: accountAddress,
+      accountAddress: currentAccount,
       porcentaje: porcentaje,
       dias: dias,
       partner: partner,
@@ -262,6 +264,8 @@ export default class CrowdFunding extends Component {
   }
 
   async deposit() {
+
+    const { currentAccount, contract } = this.props;
 
     if (this.props.view) {
       this.setState({
@@ -292,42 +296,42 @@ export default class CrowdFunding extends Component {
       return;
     }
 
-    var { balanceSite, valueUSDT, balance } = this.state;
+    let { balanceSite, valueUSDT, balance } = this.state;
 
 
-    var aprovado = await this.props.contract.contractToken.methods
+    let aprovado = await contract.contractToken.methods
       .allowance(
-        this.props.currentAccount,
-        this.props.contract.binaryProxy._address
+        currentAccount,
+        contract.binaryProxy._address
       )
-      .call({ from: this.props.currentAccount });
+      .call({ from: currentAccount });
 
     aprovado = new BigNumber(aprovado).shiftedBy(-18).toNumber()
 
     if (aprovado <= 10000) {
-      await this.props.contract.contractToken.methods
+      await contract.contractToken.methods
         .approve(
-          this.props.contract.binaryProxy._address,
+          contract.binaryProxy._address,
           "115792089237316195423570985008687907853269984665640564039457584007913129639935"
         )
-        .send({ from: this.props.currentAccount });
+        .send({ from: currentAccount });
 
       this.setState({
         ModalTitulo: "INFO",
         ModalBody: "Balance approval for exchange: successful"
       })
       window.$("#alert").modal("show");
-      aprovado = await this.props.contract.contractToken.methods
+      aprovado = await contract.contractToken.methods
         .allowance(
-          this.props.currentAccount,
-          this.props.contract.binaryProxy._address
+          currentAccount,
+          contract.binaryProxy._address
         )
-        .call({ from: this.props.currentAccount });
+        .call({ from: currentAccount });
     }
 
-    let amount = await this.props.contract.binaryProxy.methods
+    let amount = await contract.binaryProxy.methods
       .plan()
-      .call({ from: this.props.currentAccount });
+      .call({ from: currentAccount });
     amount = new BigNumber(parseInt(amount)).shiftedBy(-18).toNumber();
     amount = amount * valueUSDT;
     amount = amount - balance;
@@ -336,14 +340,14 @@ export default class CrowdFunding extends Component {
       var loc = document.location.href;
       var sponsor = cons.WS;
       var hand = 0;
-      let investors = await this.props.contract.binaryProxy.methods
-        .investors(this.props.currentAccount)
-        .call({ from: this.props.currentAccount });
+      let investors = await contract.binaryProxy.methods
+        .investors(currentAccount)
+        .call({ from: currentAccount });
 
       if (investors.registered) {
-        sponsor = await this.props.contract.binaryProxy.methods
-          .padre(this.props.currentAccount)
-          .call({ from: this.props.currentAccount });
+        sponsor = await contract.binaryProxy.methods
+          .padre(currentAccount)
+          .call({ from: currentAccount });
       } else {
         if (loc.indexOf("?") > 0) {
           var getString = loc.split("?");
@@ -367,13 +371,13 @@ export default class CrowdFunding extends Component {
           if (get["ref"]) {
             tmp = get["ref"].split("#");
 
-            var wallet = await this.props.contract.binaryProxy.methods
+            var wallet = await contract.binaryProxy.methods
               .idToAddress(tmp[0])
-              .call({ from: this.props.currentAccount });
+              .call({ from: currentAccount });
 
-            var padre = await this.props.contract.binaryProxy.methods
+            var padre = await contract.binaryProxy.methods
               .investors(wallet)
-              .call({ from: this.props.currentAccount });
+              .call({ from: currentAccount });
 
             if (padre.registered) {
               sponsor = wallet;
@@ -384,9 +388,9 @@ export default class CrowdFunding extends Component {
 
       // registered referer 
 
-      let refererInvest = await this.props.contract.binaryProxy.methods
+      let refererInvest = await contract.binaryProxy.methods
         .investors(sponsor)
-        .call({ from: this.props.currentAccount });
+        .call({ from: currentAccount });
 
       if (!refererInvest.registered) {
         this.setState({
@@ -401,17 +405,17 @@ export default class CrowdFunding extends Component {
         !investors.registered &&
         sponsor !== "0x0000000000000000000000000000000000000000"
       ) {
-        await this.props.contract.binaryProxy.methods
+        await contract.binaryProxy.methods
           .registro(sponsor, hand)
-          .send({ from: this.props.currentAccount });
+          .send({ from: currentAccount });
         this.setState({
           ModalTitulo: "INFO",
           ModalBody: "congratulation registration: successful"
         })
         window.$("#alert").modal("show");
-        sponsor = await this.props.contract.binaryProxy.methods
-          .padre(this.props.currentAccount)
-          .call({ from: this.props.currentAccount });
+        sponsor = await contract.binaryProxy.methods
+          .padre(currentAccount)
+          .call({ from: currentAccount });
       } else {
         if (!investors.registered) {
           this.setState({
@@ -426,9 +430,9 @@ export default class CrowdFunding extends Component {
       if (
         (
           parseInt(
-            await this.props.contract.binaryProxy.methods
-              .leveling(this.props.currentAccount)
-              .call({ from: this.props.currentAccount })
+            await contract.binaryProxy.methods
+              .leveling(currentAccount)
+              .call({ from: currentAccount })
           ) === 1
           ||
           sponsor !== "0x0000000000000000000000000000000000000000"
@@ -437,9 +441,9 @@ export default class CrowdFunding extends Component {
         parseInt(valueUSDT) > 0
       ) {
 
-        await this.props.contract.binaryProxy.methods
+        await contract.binaryProxy.methods
           .buyPlan(valueUSDT)
-          .send({ from: this.props.currentAccount });
+          .send({ from: currentAccount });
 
         this.setState({
           ModalTitulo: "INFO",
