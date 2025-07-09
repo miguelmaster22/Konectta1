@@ -22,7 +22,7 @@ export default class Depositos extends Component {
     setInterval(() => {
       this.setState({ currentAccount: this.props.currentAccount });
       this.Investors();
-    }, 20 * 1000);
+    }, 30 * 1000);
   }
 
   async Investors() {

@@ -71,7 +71,7 @@ export default class CrowdFunding extends Component {
 
     setInterval(() => {
       this.estado();
-    }, 10 * 1000);
+    }, 30 * 1000);
   }
 
   async estado() {

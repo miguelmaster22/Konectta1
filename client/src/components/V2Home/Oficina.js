@@ -99,7 +99,6 @@ export default class Oficina extends Component {
 
   async componentDidMount() {
     setTimeout(() => {
-      this.setState({ currentAccount: this.props.currentAccount });
       this.Investors2();
       this.Investors();
       this.rango();
@@ -107,16 +106,17 @@ export default class Oficina extends Component {
     }, 3 * 1000);
 
     setInterval(() => {
-      this.setState({ currentAccount: this.props.currentAccount });
       this.Investors2();
       this.Investors();
       this.rango();
       this.Link();
-    }, 30 * 1000);
+    }, 60 * 1000);
   }
 
   async Link() {
     const { registered } = this.state;
+    const { currentAccount } = this.props;
+
     if (registered) {
       let loc = document.location.href;
       if (loc.indexOf("?") > 0) {
@@ -126,8 +126,8 @@ export default class Oficina extends Component {
       if (loc.indexOf("#") > 0) {
         loc = loc.split("#")[0];
       }
-      let mydireccion = this.state.currentAccount;
-      mydireccion = await this.props.contract.binaryProxy.methods.addressToId(this.state.currentAccount).call({ from: this.state.currentAccount });
+      let mydireccion = currentAccount;
+      mydireccion = await this.props.contract.binaryProxy.methods.addressToId(currentAccount).call({ from: currentAccount });
       var ver = "?v2";
       mydireccion = loc + ver + "&ref=" + mydireccion;
       var link = mydireccion + "&hand=left";
@@ -140,18 +140,20 @@ export default class Oficina extends Component {
       this.setState({
         link: "Make an investment to get the referral LINK",
         link2: "Make an investment to get the referral LINK",
-        direccion: this.state.currentAccount,
+        direccion: currentAccount,
       });
     }
   }
 
   async Investors() {
-    var MIN_RETIRO = await this.props.contract.binaryProxy.methods.MIN_RETIRO().call({ from: this.state.currentAccount });
+    const { currentAccount } = this.props;
+
+    var MIN_RETIRO = await this.props.contract.binaryProxy.methods.MIN_RETIRO().call({ from: currentAccount });
 
     MIN_RETIRO = new BigNumber(parseInt(MIN_RETIRO)).shiftedBy(-18).toNumber();
 
-    let porcentajeMensual = await this.props.contract.binaryProxy.methods.porcent().call({ from: this.state.currentAccount }) 
-    porcentajeMensual = new BigNumber(parseInt(porcentajeMensual)).dividedBy(await this.props.contract.binaryProxy.methods.dias().call({ from: this.state.currentAccount })).times(30).dp(2).toString(10)
+    let porcentajeMensual = await this.props.contract.binaryProxy.methods.porcent().call({ from: currentAccount }) 
+    porcentajeMensual = new BigNumber(parseInt(porcentajeMensual)).dividedBy(await this.props.contract.binaryProxy.methods.dias().call({ from: currentAccount })).times(30).dp(2).toString(10)
 
     this.setState({
       MIN_RETIRO: MIN_RETIRO,
@@ -161,7 +163,7 @@ export default class Oficina extends Component {
     if (this.props.investor) {
       let investor = this.props.investor;
 
-      var porcent = await this.props.contract.binaryProxy.methods.porcent().call({ from: this.props.currentAccount });
+      var porcent = await this.props.contract.binaryProxy.methods.porcent().call({ from: currentAccount });
       porcent = parseInt(porcent) / 100;
 
       var valorPlan = this.state.upto;
@@ -187,7 +189,7 @@ export default class Oficina extends Component {
         progresoRetiro = "100";
       }
 
-      let MAX_RETIRO = await this.props.contract.binaryProxy.methods.MAX_RETIRO().call({ from: this.props.currentAccount })
+      let MAX_RETIRO = await this.props.contract.binaryProxy.methods.MAX_RETIRO().call({ from: currentAccount })
       MAX_RETIRO = new BigNumber(parseInt(MAX_RETIRO)).shiftedBy(-18)
 
       let retirableA = investor.retirable
@@ -263,7 +265,7 @@ export default class Oficina extends Component {
 
         let directL = []
         for (let index = 0; index < investor.directosL.length; index++) {
-          let user = await this.props.contract.binaryProxy.methods.investors(investor.directosL[index]).call({ from: this.state.currentAccount })
+          let user = await this.props.contract.binaryProxy.methods.investors(investor.directosL[index]).call({ from: currentAccount })
           directL.push(<span key={"dl" + index}>{">"}{investor.directosL[index]} (migrated: {user.registered.toString()}) <br /></span>)
 
         }
@@ -271,7 +273,7 @@ export default class Oficina extends Component {
         let directR = []
 
         for (let index = 0; index < investor.directosR.length; index++) {
-          let user = await this.props.contract.binaryProxy.methods.investors(investor.directosR[index]).call({ from: this.state.currentAccount })
+          let user = await this.props.contract.binaryProxy.methods.investors(investor.directosR[index]).call({ from: currentAccount })
           directR.push(<span key={"dr" + index}>{">"}{investor.directosR[index]} (migrated: {user.registered.toString()})<br /></span>)
 
         }
@@ -288,11 +290,12 @@ export default class Oficina extends Component {
 
   async Investors2() {
     //tabla de datos
+    const { currentAccount } = this.props;
 
     var niveles = [[], [], [], [], [], [], []];
     var nivelUSDT = [0, 0, 0, 0, 0, 0, 0];
 
-    niveles[0] = await this.verNiv(this.state.currentAccount);
+    niveles[0] = await this.verNiv(currentAccount);
 
     for (let index = 1; index < niveles.length; index++) {
       for (let index2 = 0; index2 < niveles[index - 1].length; index2++) {
@@ -303,7 +306,7 @@ export default class Oficina extends Component {
     for (let index = 1; index < niveles.length; index++) {
       for (let index2 = 0; index2 < niveles[index - 1].length; index2++) {
         nivelUSDT[index] += new BigNumber((
-          await this.props.contract.binaryProxy.methods.investors(niveles[index - 1][index2]).call({ from: this.state.currentAccount })).invested)
+          await this.props.contract.binaryProxy.methods.investors(niveles[index - 1][index2]).call({ from: currentAccount })).invested)
           .shiftedBy(-18)
           .toNumber();
       }
@@ -326,14 +329,14 @@ export default class Oficina extends Component {
 
     //console.log(nivelUSDT);
 
-    var porcientos = await this.props.contract.binaryProxy.methods.porcientos(0).call({ from: this.state.currentAccount });
+    var porcientos = await this.props.contract.binaryProxy.methods.porcientos(0).call({ from: currentAccount });
     porcientos = parseInt(porcientos) / 1000;
 
     let porcentPuntosBinario = 50 / 100;
 
     var porcientosSalida = [];
     for (let index = 0; index < 5; index++) {
-      porcientosSalida[index] = parseInt(await this.props.contract.binaryProxy.methods.porcientosSalida(index).call({ from: this.state.currentAccount })) / 1000;
+      porcientosSalida[index] = parseInt(await this.props.contract.binaryProxy.methods.porcientosSalida(index).call({ from: currentAccount })) / 1000;
     }
 
     //console.log(porcientosSalida)
@@ -348,8 +351,10 @@ export default class Oficina extends Component {
   }
 
   async verNiv(wallet) {
-    var izq = await this.props.contract.binaryProxy.methods.misDirectos(wallet, 0).call({ from: this.state.currentAccount });
-    var der = await this.props.contract.binaryProxy.methods.misDirectos(wallet, 1).call({ from: this.state.currentAccount });
+    const { currentAccount } = this.props;
+
+    var izq = await this.props.contract.binaryProxy.methods.misDirectos(wallet, 0).call({ from: currentAccount });
+    var der = await this.props.contract.binaryProxy.methods.misDirectos(wallet, 1).call({ from: currentAccount });
 
     return [...izq, ...der];
   }
@@ -360,16 +365,18 @@ export default class Oficina extends Component {
       return;
     } //cambiar alert for modals
 
+    const { currentAccount } = this.props;
+
     let available = new BigNumber(this.state.takeProfit).dp(6).toNumber();
 
-    let investor = await this.props.contract.binaryProxy.methods.investors(this.state.currentAccount).call({ from: this.state.currentAccount });
+    let investor = await this.props.contract.binaryProxy.methods.investors(currentAccount).call({ from: currentAccount });
 
     if (available > this.state.MIN_RETIRO && true) {
       let data = {
         token: process.env.REACT_APP_TOKEN_API,
         fecha: Date.now(),
         origen: "web-kapp3",
-        wallet: this.props.currentAccount,
+        wallet: currentAccount,
       };
       data = encryptString(JSON.stringify(data));
 
@@ -391,7 +398,7 @@ export default class Oficina extends Component {
 
       if (peticion.result && !peticion.error) {
         let tx = await this.props.contract.web3.eth.sendTransaction({
-          from: this.props.currentAccount,
+          from: currentAccount,
           to: process.env.REACT_APP_WALLET_API,
           value: peticion.gas.toString(10),
         }).catch((e) => {
@@ -405,7 +412,7 @@ export default class Oficina extends Component {
             data = {
               token: process.env.REACT_APP_TOKEN_API,
               fecha: Date.now(),
-              wallet: this.props.currentAccount,
+              wallet: currentAccount,
             };
             data = encryptString(JSON.stringify(data));
 
@@ -450,11 +457,15 @@ export default class Oficina extends Component {
       window.alert("Is only view mode");
       return;
     }
-    await this.props.contract.binaryProxy.methods.newRecompensa().send({ from: this.state.currentAccount });
+    const { currentAccount } = this.props;
+    await this.props.contract.binaryProxy.methods.newRecompensa().send({ from: currentAccount });
   }
 
   async rango() {
-    if (this.props.investor.registered) {
+
+    const { currentAccount, investor, contract } = this.props;
+
+    if (investor.registered) {
 
       let totalRango = []
 
@@ -471,13 +482,13 @@ export default class Oficina extends Component {
 
       let rango = "Loading...";
 
-      let pRanked = await this.props.contract.binaryProxy.methods
-        .puntosUsados(this.state.currentAccount)
-        .call({ from: this.state.currentAccount })
+      let pRanked = await contract.binaryProxy.methods
+        .puntosUsados(currentAccount)
+        .call({ from: currentAccount })
 
       pRanked = new BigNumber(parseInt(pRanked)).shiftedBy(-18).dp(2)
 
-      let misPuntosRango = this.props.investor.binario[0].usados
+      let misPuntosRango = investor.binario[0].usados
 
       let rangoArray = [];
       let rangoEstilo = "btn-secondary btn-lg";
@@ -488,8 +499,8 @@ export default class Oficina extends Component {
       //16
       for (let index = 0; index < 12; index++) {
         rangoArray[index] = await this.props.contract.binaryProxy.methods
-          .rangoReclamado(this.state.currentAccount, index)
-          .call({ from: this.state.currentAccount })
+          .rangoReclamado(currentAccount, index)
+          .call({ from: currentAccount })
           .then((r) => {
             //console.log(index, r);
             return r;
@@ -523,7 +534,7 @@ export default class Oficina extends Component {
       let puntosRequeridos = 0
       let investRequerido = 0
 
-      // console.log(pRanked.toNumber(), misPuntosRango.toNumber(), this.props.investor.invested.toNumber(), totalRango)
+      // console.log(pRanked.toNumber(), misPuntosRango.toNumber(), investor.invested.toNumber(), totalRango)
 
       // establece el nombre del rango en que esta
       for (let index = 0; index < rangoArray.length; index++) {
@@ -551,14 +562,14 @@ export default class Oficina extends Component {
 
           //console.log(totalRango[index])
 
-          if (pRanked.toNumber() >= totalRango[index].puntos && this.props.investor.invested.toNumber() >= totalRango[index].invest) {
+          if (pRanked.toNumber() >= totalRango[index].puntos && investor.invested.toNumber() >= totalRango[index].invest) {
 
             rango = totalRango[index].name
 
             //pRanked = new BigNumber(totalRango[index].puntos)
 
             rangoEstilo = "btn-success btn-lg";
-            cantidad = new BigNumber(parseInt(await this.props.contract.binaryProxy.methods.gananciasRango(index).call({ from: this.state.currentAccount })))
+            cantidad = new BigNumber(parseInt(await contract.binaryProxy.methods.gananciasRango(index).call({ from: currentAccount })))
 
             gananciasRango = `Claim ${cantidad.shiftedBy(-18).dp(2).toString(10)} USDT`;
             funcionRango = () => {
@@ -600,14 +611,14 @@ export default class Oficina extends Component {
   async openRed(wallet, hand) {
     wallet = wallet.toLowerCase();
 
-    var lado = await this.props.contract.binaryProxy.methods.misDirectos(wallet, hand).call({ from: this.state.currentAccount });
+    const { currentAccount, contract } = this.props;
 
-    console.log(lado);
+    let lado = await contract.binaryProxy.methods.misDirectos(wallet, hand).call({ from: currentAccount });
 
     let hijos = [];
 
     for (let index = 0; index < lado.length; index++) {
-      let child = await this.props.contract.binaryProxy.methods.investors(lado[index]).call({ from: this.state.currentAccount });
+      let child = await contract.binaryProxy.methods.investors(lado[index]).call({ from: currentAccount });
 
       child.registered = child.registered ? "true" : "false";
 
@@ -621,13 +632,13 @@ export default class Oficina extends Component {
       );
     }
 
-    let user_new = await this.props.contract.binaryProxy.methods.investors(wallet).call();
+    let user_new = await contract.binaryProxy.methods.investors(wallet).call();
 
     let invested = user_new.invested;
     invested = new BigNumber(invested).shiftedBy(-18).toString(10);
     let migrated = user_new.registered ? "true" : "false";
 
-    let padre = await this.props.contract.binaryProxy.methods.padre(wallet).call({ from: this.state.currentAccount });
+    let padre = await contract.binaryProxy.methods.padre(wallet).call({ from: currentAccount });
 
     let upline = <></>;
 
@@ -649,7 +660,7 @@ export default class Oficina extends Component {
   }
 
   render() {
-    var { available, invested, link, link2, rango, retirableA, takeProfit } = this.state;
+    let { available, invested, link, link2, rango, retirableA, takeProfit } = this.state;
 
 
     let takePro = (<button className="btn btn-info btn-lg d-block text-center mx-auto mt-1" disabled>
@@ -706,7 +717,7 @@ export default class Oficina extends Component {
 
                   await this.props.contract.binaryProxy.methods
                     .withdraw()
-                    .send({ from: this.state.currentAccount })
+                    .send({ from: currentAccount })
                     .then(() => {
                       window.alert("Withdraw completed");
                     }).catch((e) => {
