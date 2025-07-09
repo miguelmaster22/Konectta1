@@ -14,10 +14,15 @@ export default class Depositos extends Component {
   }
 
   async componentDidMount() {
-    setInterval(() => {
+    setTimeout(() => {
       this.setState({ currentAccount: this.props.currentAccount });
       this.Investors();
     }, 3 * 1000);
+
+    setInterval(() => {
+      this.setState({ currentAccount: this.props.currentAccount });
+      this.Investors();
+    }, 20 * 1000);
   }
 
   async Investors() {

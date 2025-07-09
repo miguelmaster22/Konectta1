@@ -98,13 +98,21 @@ export default class Oficina extends Component {
   }
 
   async componentDidMount() {
-    setInterval(() => {
+    setTimeout(() => {
       this.setState({ currentAccount: this.props.currentAccount });
       this.Investors2();
       this.Investors();
       this.rango();
       this.Link();
     }, 3 * 1000);
+
+    setInterval(() => {
+      this.setState({ currentAccount: this.props.currentAccount });
+      this.Investors2();
+      this.Investors();
+      this.rango();
+      this.Link();
+    }, 30 * 1000);
   }
 
   async Link() {
