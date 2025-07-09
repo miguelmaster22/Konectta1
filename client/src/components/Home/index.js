@@ -1,10 +1,12 @@
 import React, { Component } from "react";
 
+
 import CrowdFunding from "./CrowdFunding";
 import Oficina from "./Oficina";
 import Datos from "./Datos";
 import Depositos from "./Depositos";
 import cons from "../../cons";
+
 
 const BigNumber = require("bignumber.js");
 
@@ -27,41 +29,31 @@ export default class Home extends Component {
 
     setTimeout(() => {
       this.Investor()
-
-    }, 4 * 1000)
+    }, 3 * 1000)
 
     intervalo2 = setInterval(() => {
       this.Investor()
-    }, 15 * 1000)
+    }, 30 * 1000)
   }
 
   componentWillUnmount() {
     clearInterval(intervalo2)
   }
 
+
   async Investor() {
 
-    const { currentAccount, contract, admin } = this.props;
-
-    console.log("index js Investor", currentAccount)
+    const {admin, currentAccount, contract} = this.props
 
     let investor = {}
     investor.admin = admin;
     investor.wallet = (currentAccount).toLowerCase();
 
-    investor.decimals = await contract.contractToken.methods
-      .decimals()
-      .call({ from: investor.wallet })
-      .then((r) => {
-        return parseInt(r)
-      })
-
+    investor.decimals = parseInt( await contract.contractToken.methods.decimals().call({ from: investor.wallet }))
 
     try {
 
-      let consulta = await contract.binaryProxy.methods
-        .investors(investor.wallet)
-        .call({ from: investor.wallet })
+      let consulta = await contract.binaryProxy.methods.investors(investor.wallet).call({ from: investor.wallet })
         .then((r) => {
 
           for (let index = 0; index < 4; index++) {
@@ -74,7 +66,7 @@ export default class Home extends Component {
 
       consulta.invested = new BigNumber(parseInt(consulta.invested)).shiftedBy(-investor.decimals)
       consulta.withdrawn = new BigNumber(parseInt(consulta.withdrawn)).shiftedBy(-investor.decimals)
-      consulta.paidAt = parseInt(consulta.paidAt)
+      consulta.paidAt = parseInt(parseInt(consulta.paidAt))
 
       investor = { ...investor, ...consulta }
 
@@ -82,7 +74,29 @@ export default class Home extends Component {
       console.log(error.toString())
     }
 
-    investor.pasivo = await contract.binaryProxy.methods
+    //console.log(this.props.contract.binaryProxy.events.UpdateParams())
+
+    /*
+    try {
+
+      const events = await this.props.contract.binaryProxy.getPastEvents('UpdateParams', {
+          fromBlock: "earliest", // O un bloque específico si prefieres limitar la búsqueda
+          toBlock: "latest",
+      });
+      console.log('Usuarios en las últimas 24 horas:', events.length);
+
+      
+    } catch (error) {
+        console.log(error)
+      
+        
+    }
+        */
+
+
+    // pasivo de los paquetes comprados
+
+    investor.pasivo = await this.props.contract.binaryProxy.methods
       .withdrawablePassive(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
@@ -91,7 +105,7 @@ export default class Home extends Component {
       })
 
 
-    investor.ventaDirecta = await contract.binaryProxy.methods
+    investor.ventaDirecta = await this.props.contract.binaryProxy.methods
       .ventaDirecta(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
@@ -99,7 +113,7 @@ export default class Home extends Component {
         return r
       })
 
-    investor.retirableBinario = await contract.binaryProxy.methods
+    investor.retirableBinario = await this.props.contract.binaryProxy.methods
       .binario(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
@@ -107,7 +121,7 @@ export default class Home extends Component {
         return r
       })
 
-    investor.matchingBonus = await contract.binaryProxy.methods
+    investor.matchingBonus = await this.props.contract.binaryProxy.methods
       .matchingBonus(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
@@ -116,7 +130,7 @@ export default class Home extends Component {
       })
 
     // lo que puede sacar directamente del blockchain
-    investor.retirable = await contract.binaryProxy.methods
+    investor.retirable = await this.props.contract.binaryProxy.methods
       .retirableA(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
@@ -124,7 +138,7 @@ export default class Home extends Component {
         return r
       })
 
-    investor.id = await contract.binaryProxy.methods
+    investor.id = await this.props.contract.binaryProxy.methods
       .addressToId(investor.wallet)
       .call({ from: investor.wallet })
       .then((r) => {
@@ -133,8 +147,8 @@ export default class Home extends Component {
 
     try {
 
-      investor.directosL = await contract.binaryProxy.methods.misDirectos(investor.wallet, 0).call({ from: investor.wallet })
-      investor.directosR = await contract.binaryProxy.methods.misDirectos(investor.wallet, 1).call({ from: investor.wallet })
+      investor.directosL = await this.props.contract.binaryProxy.methods.misDirectos(investor.wallet, 0).call({ from: investor.wallet })
+      investor.directosR = await this.props.contract.binaryProxy.methods.misDirectos(investor.wallet, 1).call({ from: investor.wallet })
 
       investor.directos = investor.directosL.length;
       investor.directos += investor.directosR.length;
@@ -183,12 +197,12 @@ export default class Home extends Component {
       console.log(error.toString())
     }
 
-    investor.porcentaje = parseInt(await contract.binaryProxy.methods
+    investor.porcentaje = parseInt(await this.props.contract.binaryProxy.methods
       .porcent()
       .call({ from: investor.wallet })) / 100;
 
 
-    let verdepositos = await contract.binaryProxy.methods
+    let verdepositos = await this.props.contract.binaryProxy.methods
       .verListaDepositos(investor.wallet)
       .call({ from: investor.wallet });
 
@@ -205,7 +219,7 @@ export default class Home extends Component {
       listaDepositos = [];
 
 
-      let tiempo = await contract.binaryProxy.methods
+      let tiempo = await this.props.contract.binaryProxy.methods
         .tiempo()
         .call({ from: investor.wallet });
 
@@ -215,12 +229,11 @@ export default class Home extends Component {
 
       for (let i = 0; i < verdepositos.length; i++) {
         let deposit = verdepositos[i]
-
-        deposit.inicio = parseInt(deposit.inicio) 
-        deposit.factor = parseInt(deposit.factor) 
-        deposit.pasivo = parseInt(deposit.pasivo) 
+        deposit.inicio = parseInt(deposit.inicio)
+        deposit.factor = parseInt(deposit.factor)
         deposit.valor = parseInt(deposit.valor)
         deposit.retirado = parseInt(deposit.retirado)
+        deposit.pasivo = parseInt(deposit.pasivo)
 
         let porcentiempo =
           ((Date.now() - deposit.inicio * 1000) * 100) / tiempo;
@@ -352,7 +365,7 @@ export default class Home extends Component {
     investor.totalLeader = totalLeader.shiftedBy(-investor.decimals);
 
     try {
-      investor.id = await contract.binaryProxy.methods.addressToId(this.props.currentAccount).call({ from: investor.wallet });
+      investor.id = parseInt(await this.props.contract.binaryProxy.methods.addressToId(this.props.currentAccount).call({ from: investor.wallet }));
 
     } catch (error) {
       console.log(error.toString())
@@ -361,15 +374,13 @@ export default class Home extends Component {
 
 
 
-    let timerOut = parseInt(await contract.binaryProxy.methods.timerOut().call({ from: investor.wallet })) * 1000
+    let timerOut = parseInt(await this.props.contract.binaryProxy.methods.timerOut().call({ from: investor.wallet })) * 1000
 
-    investor.lastPay = parseInt(await contract.binaryProxy.methods.lastPay(this.props.currentAccount).call({ from: investor.wallet })) * 1000
-
+    investor.lastPay = parseInt(await this.props.contract.binaryProxy.methods.lastPay(this.props.currentAccount).call({ from: investor.wallet })) * 1000
 
     investor.nextPay = investor.lastPay + timerOut
 
-
-    investor.balanceUSDTContract = new BigNumber(parseInt(await contract.contractToken.methods.balanceOf(contract.binaryProxy._address).call({ from: investor.wallet }))).shiftedBy(-18).toNumber()
+    investor.balanceUSDTContract = new BigNumber(parseInt(await this.props.contract.contractToken.methods.balanceOf(this.props.contract.binaryProxy._address).call({ from: investor.wallet }))).shiftedBy(-18).toNumber()
 
 
     //console.log(investor)
@@ -420,7 +431,7 @@ export default class Home extends Component {
 
           />
 
-
+          {/** 
           <div className="container mt-5">
             <div className="row">
               <div className="col-md-12">
@@ -442,7 +453,7 @@ export default class Home extends Component {
               </div>
             </div>
           </div>
-
+*/}
         </div>
       </div>
     );

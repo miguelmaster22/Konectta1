@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Web3 from "web3";
 import detectEthereumProvider from '@metamask/detect-provider';
 
+import Home from "./components/Home";
 import HomeV2 from "./components/V2Home";
 
 import MetamaskGuide from "./components/MetamaskConect";
@@ -226,10 +227,10 @@ class App extends Component {
 
       case "view":
       case "new_view":
-        return (<HomeV2 admin={this.state.admin} view={true} contract={this.state.contract} currentAccount={vWallet} />);
+        return (<Home admin={this.state.admin} view={true} contract={this.state.contract} currentAccount={vWallet} />);
 
       default:
-        return (<HomeV2 admin={this.state.admin} view={false} contract={this.state.contract} currentAccount={this.state.currentAccount} />);
+        return (<Home admin={this.state.admin} view={false} contract={this.state.contract} currentAccount={this.state.currentAccount} />);
 
     }
   }

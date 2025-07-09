@@ -14,33 +14,24 @@ export default class Depositos extends Component {
   }
 
   async componentDidMount() {
-    setTimeout(() => {
-      this.Investors();
-    }, 5 * 1000);
-
     setInterval(() => {
+      this.setState({ currentAccount: this.props.currentAccount });
       this.Investors();
-    }, 20 * 1000);
+    }, 3 * 1000);
   }
 
-  async Investors() {
-    const { investor } = this.props;
 
-    if (investor.registered) {
+  async Investors() {
+    if (this.props.investor.registered) {
       this.setState({
         depositos: this.props.investor.listaDepositos,
         totalDeposit: this.props.investor.totalInvest.dp(2).toString(10),
         totalPakc: this.props.investor.totalLeader.dp(2).toString(10),
       });
-    }else{
-      this.setState({
-        depositos: [],
-        totalDeposit: 0,
-        totalPakc: 0
-      });
     }
 
   }
+
 
   render() {
 
