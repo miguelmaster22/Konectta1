@@ -27,8 +27,8 @@ function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
 const uriMongoDB = env.APP_URIMONGODB + env.APP_NAME + "?authSource=admin&retryWrites=true&w=majority"
 const WalletVacia = "0x0000000000000000000000000000000000000000"
-const factorBlock = 1.7
-const factorFail = 30
+const factorBlock = 2
+const factorFail = 100
 const abiContrato = require("./BinarySystemV4.json");
 
 
