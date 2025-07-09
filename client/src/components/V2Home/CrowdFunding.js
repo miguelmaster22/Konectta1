@@ -88,7 +88,7 @@ export default class CrowdFunding extends Component {
       .symbol()
       .call({ from: currentAccount });
 
-    var aprovado = await contract.contractToken.methods
+    let aprovado = await contract.contractToken.methods
       .allowance(currentAccount, contract.binaryProxy._address)
       .call({ from: currentAccount });
 
@@ -110,20 +110,20 @@ export default class CrowdFunding extends Component {
 
     tiempo = parseInt(tiempo) * 1000;
 
-    var porcentiempo = ((Date.now() - inversors.inicio) * 100) / tiempo;
+    let porcentiempo = ((Date.now() - inversors.inicio) * 100) / tiempo;
 
-    var decimales = await contract.contractToken.methods
+    let decimales = await contract.contractToken.methods
       .decimals()
       .call({ from: currentAccount });
     decimales = parseInt(decimales);
 
-    var balance = await contract.contractToken.methods
+    let balance = await contract.contractToken.methods
       .balanceOf(currentAccount)
       .call({ from: currentAccount });
 
     balance = new BigNumber(parseInt(balance)).shiftedBy(-decimales).toString(10);
 
-    var valorPlan = 0;
+    let valorPlan = 0;
 
     if (porcentiempo < 100) {
       aprovado = "Update Plan";
